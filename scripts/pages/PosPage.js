@@ -10,13 +10,22 @@ function renderProductCard(product) {
   const isOutOfStock = product.stock <= 0;
   const isLowStock = product.stock > 0 && product.stock < 5;
 
-  // เพิ่ม class modifier ตามสถานะของสต็อก
-  const stockStatusClass = isOutOfStock ? 'product-card--out-of-stock' : '';
+  // 1. ตรวจสอบ image_url ถ้าไม่มี ให้ใช้รูปภาพสำรอง
+  const imageUrl = product.image_url || 'https://placehold.co/600x400/e2e8f0/64748b?text=No+Image';
+
+  // 2. เพิ่มเงื่อนไขปิดการใช้งานปุ่มถ้าสต็อกหมด
+  const disabledClass = isOutOfStock ? 'product-card--out-of-stock' : ''; // ใช้สำหรับ CSS styling เท่านั้น
+  const disabledAttribute = isOutOfStock ? 'disabled' : '';
+
   const lowStockIndicator = isLowStock ? `<div class="product-card__low-stock">สต็อกใกล้หมด</div>` : '';
 
   return `
-    <div class="product-card ${stockStatusClass}" data-product-id="${product.id}">
-      <img src="${product.image_url}" alt="${product.name}" class="product-card__image">
+    <button 
+      class="product-card ${disabledClass}" 
+      data-product-id="${product.id}"
+      ${disabledAttribute}
+    >
+      <img src="${imageUrl}" alt="${product.name}" class="product-card__image">
       <div class="product-card__info">
         <h3 class="product-card__name">${product.name}</h3>
         <p class="product-card__price">${product.price} บาท</p>
@@ -25,7 +34,7 @@ function renderProductCard(product) {
         คงเหลือ: ${product.stock}
       </div>
       ${lowStockIndicator}
-    </div>
+    </button>
   `;
 }
 
@@ -52,8 +61,14 @@ export function PosPage() {
   const currentUser = userStore.getCurrentUser();
 
   if (!currentUser) {
-    // โค้ดป้องกันยังคงเหมือนเดิม
-    // ...
+    const view = `<div class="pos-page-container">
+                    <p>เกิดข้อผิดพลาด: ไม่พบข้อมูลผู้ใช้</p>
+                    <button id="back-to-login-btn">กลับไปหน้าล็อกอิน</button>
+                  </div>`;
+    const postRender = () => {
+      document.getElementById('back-to-login-btn')?.addEventListener('click', () => navigate('/login'));
+    };
+    return { view, postRender };
   }
 
   const view = `
@@ -77,21 +92,16 @@ export function PosPage() {
   `;
 
   const postRender = async () => {
-    // ดึงข้อมูลสินค้าแค่ครั้งเดียวเมื่อเปิดหน้านี้
     const shopId = currentUser.shop_id;
     const products = await getProductsWithStock(shopId);
-    productStore.setProducts(products); // นำสินค้าไปเก็บใน store
+    productStore.setProducts(products);
 
-    // เริ่ม render สินค้าลงบนหน้าจอ
     renderProductGrid();
     
-    // --- Setup Event Listeners ---
     document.getElementById('logout-button')?.addEventListener('click', () => {
       userStore.signOut();
       router.init();
     });
-
-    // เราจะเพิ่ม event listener สำหรับการคลิกสินค้าในขั้นตอนต่อไป
   };
 
   return { view, postRender };
