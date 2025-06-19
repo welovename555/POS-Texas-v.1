@@ -1,10 +1,11 @@
 import { userStore } from '../state/userStore.js';
 import { router } from '../router/index.js';
+import { navigate } from '../router/index.js'; // เพิ่ม import navigate
 
 function handleLogout() {
   console.log('User logging out...');
   userStore.signOut();
-  router.init(); // เรียก init() เพื่อให้ router ตัดสินใจไปหน้า login เอง
+  router.init(); 
 }
 
 export function PosPage() {
@@ -22,14 +23,14 @@ export function PosPage() {
   }
 
   // ▼▼▼▼▼ จุดที่แก้ไข ▼▼▼▼▼
-  // เปลี่ยนจาก .name เป็น .ชื่อ
-  // เปลี่ยนจาก .role เป็น .ตำแหน่ง
+  // เปลี่ยนจาก .ชื่อ เป็น .name
+  // เปลี่ยนจาก .ตำแหน่ง เป็น .role
   const view = `
     <div class="pos-page">
       <header class="pos-page__header">
         <h1>POS System</h1>
         <div class="user-info">
-          <span>พนักงาน: <strong>${currentUser.ชื่อ}</strong> (${currentUser.ตำแหน่ง})</span>
+          <span>พนักงาน: <strong>${currentUser.name}</strong> (${currentUser.role})</span>
           <button id="logout-button" class="logout-button">ออกจากระบบ</button>
         </div>
       </header>
