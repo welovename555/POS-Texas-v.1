@@ -297,3 +297,93 @@ body {
   transform: none;
   box-shadow: none;
 }
+
+/* เพิ่มโค้ดนี้ต่อท้ายไฟล์ main.css */
+.sidebar-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.cart-items-container {
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+.cart-empty-message {
+  color: #64748b;
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.cart-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.cart-item__name {
+  font-weight: 500;
+}
+
+.cart-item__price {
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.cart-item__controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.quantity-btn, .remove-btn {
+  background: none;
+  border: 1px solid #e2e8f0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.remove-btn {
+  border-color: transparent;
+}
+
+.cart-summary {
+  padding-top: 1.5rem;
+  margin-top: auto;
+  border-top: 1px solid #e2e8f0;
+}
+
+.summary-line {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+}
+
+.summary-line--total {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.checkout-button {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #ffffff;
+  background-color: #16a34a; /* สีเขียว */
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 1rem;
+}
