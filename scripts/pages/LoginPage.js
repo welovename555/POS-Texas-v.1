@@ -1,7 +1,22 @@
-// Function-based Component ที่ทำหน้าที่สร้างและคืนค่าเป็น HTML string
+function handleNumpad(event) {
+  const pinInput = document.getElementById('pin-input');
+  const key = event.target.dataset.key;
+
+  if (!key) return; // ถ้าคลิกนอกปุ่ม ให้ไม่ต้องทำอะไร
+
+  if (key >= '0' && key <= '9') {
+    if (pinInput.value.length < 4) {
+      pinInput.value += key;
+    }
+  } else if (key === 'clear') {
+    pinInput.value = '';
+  } else if (key === 'backspace') {
+    pinInput.value = pinInput.value.slice(0, -1);
+  }
+}
+
+// Component ที่คืนค่าเป็น Object ที่มี view และ postRender
 export function LoginPage() {
-  // เราจะใช้ String Literal ในการสร้างโครงสร้าง HTML ทั้งหมด
-  // การตั้งชื่อ class แบบ BEM (Block__Element--Modifier) จะช่วยให้ CSS จัดการง่าย
   const view = `
     <div class="login-page">
       <div class="login-page__form">
@@ -9,10 +24,10 @@ export function LoginPage() {
         <p class="login-page__subtitle">กรุณาใส่รหัส PIN</p>
         
         <div class="login-page__pin-display">
-          <input type="password" id="pin-input" class="pin-display__input" maxlength="4" readonly>
+          <input type="password" id="pin-input" class="pin-display__input" maxlength="4" readonly inputmode="numeric" pattern="[0-9]*">
         </div>
 
-        <div class="login-page__numpad">
+        <div class="login-page__numpad" id="numpad">
           <button class="numpad__button" data-key="1">1</button>
           <button class="numpad__button" data-key="2">2</button>
           <button class="numpad__button" data-key="3">3</button>
@@ -32,5 +47,12 @@ export function LoginPage() {
     </div>
   `;
 
-  return view;
+  // ฟังก์ชันที่จะถูกเรียกใช้หลังจาก HTML ถูก render ลงบนหน้าจอแล้ว
+  const postRender = () => {
+    const numpad = document.getElementById('numpad');
+    // ใช้ Event Delegation เพื่อจัดการการคลิกทั้งหมดใน numpad
+    numpad.addEventListener('click', handleNumpad);
+  };
+
+  return { view, postRender };
 }
