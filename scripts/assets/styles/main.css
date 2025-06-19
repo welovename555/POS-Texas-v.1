@@ -432,3 +432,34 @@ body {
 .modal__content {
   padding: 2rem;
 }
+
+/* --- Price Selection Modal Styles --- */
+
+.price-modal__title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.price-modal__buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.price-btn {
+  padding: 1rem;
+  font-size: 1rem;
+  font-weight: 500;
+  border: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.price-btn:hover {
+  background-color: #e2e8f0;
+  border-color: #cbd5e1;
+}
