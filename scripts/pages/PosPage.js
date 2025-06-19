@@ -3,6 +3,7 @@ import { productStore } from '../state/productStore.js';
 import { cartStore } from '../state/cartStore.js';
 import { getProductsWithStock } from '../api/productApi.js';
 import { router, navigate } from '../router/index.js';
+import { Modal } from '../components/common/Modal.js';
 
 // --- Helper: Render Functions ---
 
@@ -13,13 +14,14 @@ function renderProductCard(product) {
   const disabledClass = isOutOfStock ? 'product-card--out-of-stock' : '';
   const disabledAttribute = isOutOfStock ? 'disabled' : '';
   const lowStockIndicator = isLowStock ? `<div class="product-card__low-stock">สต็อกใกล้หมด</div>` : '';
+  const priceDisplay = product.price ? `${product.price} บาท` : product.prices.join('/') + ' บาท';
 
   return `
     <button class="product-card ${disabledClass}" data-product-id="${product.id}" ${disabledAttribute}>
       <img src="${imageUrl}" alt="${product.name}" class="product-card__image">
       <div class="product-card__info">
         <h3 class="product-card__name">${product.name}</h3>
-        <p class="product-card__price">${product.price} บาท</p>
+        <p class="product-card__price">${priceDisplay}</p>
       </div>
       <div class="product-card__stock">คงเหลือ: ${product.stock}</div>
       ${lowStockIndicator}
@@ -88,19 +90,47 @@ function renderCart() {
 
 // --- Helper: Event Handlers ---
 
+function openPriceSelectionModal(product) {
+  const contentHtml = `
+    <div class="price-modal">
+      <h3 class="price-modal__title">เลือกราคาสำหรับ "${product.name}"</h3>
+      <div class="price-modal__buttons" id="price-options">
+        ${product.prices.map(price => 
+          `<button class="price-btn" data-price="${price}">${price} บาท</button>`
+        ).join('')}
+      </div>
+    </div>
+  `;
+
+  const afterOpen = () => {
+    const priceOptions = document.getElementById('price-options');
+    priceOptions?.addEventListener('click', (event) => {
+      const priceButton = event.target.closest('.price-btn');
+      if (priceButton) {
+        const selectedPrice = parseFloat(priceButton.dataset.price);
+        cartStore.addItem(product, selectedPrice);
+        Modal.close();
+      }
+    });
+  };
+
+  Modal.open(contentHtml, afterOpen);
+}
+
 function handleProductClick(event) {
   const productCard = event.target.closest('.product-card');
   if (!productCard || productCard.disabled) return;
-
   const productId = productCard.dataset.productId;
   const product = productStore.getProductById(productId);
 
   if (product) {
-    if (product.price) {
+    const hasMultiplePrices = product.prices && product.prices.length > 0;
+    if (hasMultiplePrices) {
+      openPriceSelectionModal(product);
+    } else if (product.price) {
       cartStore.addItem(product, product.price);
     } else {
-      console.log('Multi-price product clicked. Modal needed.');
-      // TODO: Open price selection modal
+      console.warn(`Product ${product.id} has no price defined.`);
     }
   }
 }
@@ -119,10 +149,17 @@ function handleCartClick(event) {
   if (action === 'remove') cartStore.removeItem(cartItemId);
 }
 
+
 // --- Main Page Component ---
 export function PosPage() {
   const currentUser = userStore.getCurrentUser();
-  if (!currentUser) { /* ... defensive code ... */ return { view: '...' }; }
+  if (!currentUser) {
+    const view = `<div class="pos-page-container"><p>เกิดข้อผิดพลาด: ไม่พบข้อมูลผู้ใช้ <button id="back-to-login-btn">กลับไปหน้าล็อกอิน</button></p></div>`;
+    const postRender = () => {
+      document.getElementById('back-to-login-btn')?.addEventListener('click', () => navigate('/login'));
+    };
+    return { view, postRender };
+  }
 
   const view = `
     <div class="pos-page-container">
@@ -171,4 +208,3 @@ export function PosPage() {
 
   return { view, postRender };
 }
-
