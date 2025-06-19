@@ -1,0 +1,14 @@
+@import './_reset.css';
+
+body {
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  background-color: #f4f4f5; /* สีเทาอ่อน */
+  color: #18181b;
+  display: grid;
+  place-content: center;
+  min-height: 100vh;
+}
+
+#app {
+  text-align: center;
+}
