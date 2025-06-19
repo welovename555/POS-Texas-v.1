@@ -1,14 +1,77 @@
-@import './_reset.css';
+/* เพิ่มโค้ดนี้ต่อจากของเดิมในไฟล์ main.css */
 
-body {
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-  background-color: #f4f4f5; /* สีเทาอ่อน */
-  color: #18181b;
-  display: grid;
-  place-content: center;
-  min-height: 100vh;
+.login-page {
+  width: 100%;
+  max-width: 360px;
+  padding: 2rem;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  text-align: center;
 }
 
-#app {
+.login-page__title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.login-page__subtitle {
+  font-size: 1rem;
+  color: #64748b;
+  margin-bottom: 2rem;
+}
+
+.login-page__pin-display {
+  margin-bottom: 2rem;
+}
+
+.pin-display__input {
+  width: 100%;
+  padding: 1rem;
+  font-size: 2rem;
   text-align: center;
+  letter-spacing: 0.5em; /* ทำให้ตัวเลขห่างกัน */
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background-color: #f8fafc;
+  user-select: none; /* ป้องกันการเลือกข้อความ */
+}
+
+.login-page__numpad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.numpad__button {
+  padding: 1.25rem 0;
+  font-size: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.numpad__button:active {
+  background-color: #f1f5f9;
+}
+
+.login-page__button {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #ffffff;
+  background-color: #0ea5e9; /* สีฟ้า */
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.login-page__button:hover {
+  background-color: #0284c7;
 }
