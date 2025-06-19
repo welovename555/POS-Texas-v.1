@@ -1,17 +1,11 @@
-import { supabase } from './lib/supabaseClient.js';
+import { router } from './router/index.js';
+// ไม่ต้อง import supabase ที่นี่แล้ว เพราะแต่ละส่วนจะไปเรียกใช้ใน api ของตัวเอง
 
-const app = document.getElementById('app');
-
+// ฟังก์ชันหลักของแอป จะเหลือหน้าที่แค่เริ่มการทำงานของ Router
 function initializeApp() {
-  if (!app) {
-    console.error('Error: #app element not found!');
-    return;
-  }
-
-  app.innerHTML = '<h1>Texas POS</h1><p>System Ready. Connected.</p>';
-  console.log('Application Initialized Successfully!');
-  console.log('Supabase instance:', supabase);
+  console.log('Router Initializing...');
+  // เริ่มต้นโดยการบอกให้ router ไปที่หน้า '/login'
+  router('/login');
 }
 
-// Start the app
 initializeApp();
