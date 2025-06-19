@@ -90,3 +90,17 @@ body {
 .login-page__button:hover {
   background-color: #0284c7;
 }
+
+/* เพิ่มโค้ดนี้ต่อท้ายไฟล์ main.css */
+
+.login-page__error {
+  color: #ef4444; /* สีแดง */
+  font-weight: 500;
+  height: 1.25rem; /* จองพื้นที่ไว้จะได้ไม่กระโดด */
+  margin-bottom: 1rem;
+}
+
+.login-page__button:disabled {
+  background-color: #64748b;
+  cursor: not-allowed;
+}
