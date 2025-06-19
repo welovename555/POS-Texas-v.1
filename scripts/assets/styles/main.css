@@ -463,3 +463,22 @@ body {
   background-color: #e2e8f0;
   border-color: #cbd5e1;
 }
+
+/* --- Payment Modal & Success Animation Styles --- */
+.payment-modal__title{font-size:1.25rem;font-weight:600;margin-bottom:1rem;text-align:center}
+.payment-modal__total{font-size:1.5rem;font-weight:700;text-align:center;margin-bottom:1.5rem}
+.payment-modal__total span{color:#16a34a}
+.payment-method{display:flex;gap:1rem;margin-bottom:1.5rem}
+.payment-btn{flex:1;padding:1rem;font-size:1rem;border:2px solid #e2e8f0;border-radius:8px;background-color:#f8fafc;cursor:pointer}
+.payment-btn.active{border-color:#0ea5e9;background-color:#f0f9ff;font-weight:600}
+.cash-section{display:block;padding:1rem;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:1.5rem}
+.cash-section label{display:block;margin-bottom:.5rem;font-weight:500}
+.cash-input{width:100%;padding:.75rem;border-radius:6px;border:1px solid #cbd5e1;font-size:1.25rem;text-align:right}
+.change-display{margin-top:1rem;font-size:1.125rem;text-align:right}
+.change-display span{font-weight:700;color:#16a34a}
+.payment-modal__actions{display:flex}
+.confirm-btn{flex:1;padding:1rem;font-size:1.125rem;font-weight:600;color:#fff;background-color:#16a34a;border:none;border-radius:8px;cursor:pointer}
+.success-animation{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem}
+.progress-bar{width:100%;height:10px;background-color:#e2e8f0;border-radius:5px;overflow:hidden;transition:width .1s linear}
+#success-progress-bar{background-color:#22c55e;width:0;height:100%;border-radius:5px}
+#success-progress-text{font-size:1.5rem;font-weight:600}
