@@ -4,19 +4,17 @@ import { shiftStore } from '../state/shiftStore.js';
 /**
  * ค้นหากะที่ยังทำงานอยู่ (end_time is null) ของพนักงานคนนั้น
  * ถ้าไม่เจอ จะทำการสร้างกะใหม่ให้โดยอัตโนมัติ
- * @param {{employeeId: string, shopId: number}} params - ไอดีพนักงานและสาขา
+ * @param {{employeeId: string}} params - ไอดีพนักงาน
  * @returns {Promise<object|null>} อ็อบเจกต์ของกะที่กำลังทำงานอยู่
  */
-export async function findOrCreateActiveShift({ employeeId, shopId }) {
-  if (!employeeId || !shopId) {
-    console.error('findOrCreateActiveShift requires employeeId and shopId');
+export async function findOrCreateActiveShift({ employeeId }) {
+  if (!employeeId) {
+    console.error('findOrCreateActiveShift requires an employeeId');
     return null;
   }
 
-  // 1. ลองค้นหาจากใน store ก่อน (เร็วที่สุด)
   const activeShiftId = shiftStore.getActiveShiftId();
   if (activeShiftId) {
-    // ถ้าเจอใน store ให้ดึงข้อมูลกะนั้นมาเลย
     const { data: shift, error } = await supabase
       .from('shifts')
       .select('*')
@@ -27,41 +25,39 @@ export async function findOrCreateActiveShift({ employeeId, shopId }) {
       console.log('Found active shift from store:', shift);
       return shift;
     } else {
-      // ถ้าข้อมูลใน store ไม่ถูกต้อง (เช่น กะถูกปิดไปแล้ว) ให้ล้างค่าทิ้ง
       shiftStore.clearActiveShift();
     }
   }
 
-  // 2. ถ้าไม่เจอใน store ให้ลองค้นหาในฐานข้อมูล
   const { data: existingShift, error: findError } = await supabase
     .from('shifts')
     .select('*')
     .eq('employee_id', employeeId)
-    .is('end_time', null) // ค้นหาแถวที่ end_time เป็นค่าว่าง (NULL)
+    .is('end_time', null)
     .single();
 
-  if (findError && findError.code !== 'PGRST116') { // PGRST116 คือ error "ไม่เจอแถว" ซึ่งไม่ใช่ error จริงๆ
+  if (findError && findError.code !== 'PGRST116') {
     console.error('Error finding active shift:', findError);
     return null;
   }
 
   if (existingShift) {
     console.log('Found existing active shift in DB:', existingShift);
-    shiftStore.setActiveShift(existingShift.id); // บันทึก ID ลง store
+    shiftStore.setActiveShift(existingShift.id);
     return existingShift;
   }
 
-  // 3. ถ้าไม่เจอเลย ให้สร้างกะใหม่
   console.log('No active shift found. Creating a new one...');
+  // ▼▼▼▼▼ จุดที่แก้ไข: นำ shop_id ออกจาก object ที่จะ insert ▼▼▼▼▼
   const { data: newShift, error: createError } = await supabase
     .from('shifts')
     .insert({ 
       employee_id: employeeId,
-      shop_id: shopId, // สมมติว่าตาราง shifts มีคอลัมน์ shop_id
       start_time: new Date().toISOString(),
     })
     .select()
     .single();
+  // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
   if (createError) {
     console.error('Error creating new shift:', createError);
@@ -70,7 +66,7 @@ export async function findOrCreateActiveShift({ employeeId, shopId }) {
 
   if (newShift) {
     console.log('Successfully created a new shift:', newShift);
-    shiftStore.setActiveShift(newShift.id); // บันทึก ID ลง store
+    shiftStore.setActiveShift(newShift.id);
     return newShift;
   }
   
