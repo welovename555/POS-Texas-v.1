@@ -270,3 +270,30 @@ body {
   font-size: 0.75rem;
   font-weight: 600;
 }
+
+/* เพิ่มโค้ดนี้ต่อท้ายไฟล์ main.css */
+
+/* ทำให้ button มีลักษณะเหมือน div เดิม */
+.product-card {
+  all: unset; /* ล้างสไตล์เริ่มต้นของ button */
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background-color: #ffffff;
+  cursor: pointer;
+  text-align: left;
+  position: relative;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+/* สไตล์เมื่อ disabled */
+.product-card:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #f1f5f9;
+}
+
+.product-card:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
