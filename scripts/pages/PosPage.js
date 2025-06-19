@@ -2,15 +2,45 @@ import { userStore } from '../state/userStore.js';
 import { productStore } from '../state/productStore.js';
 import { cartStore } from '../state/cartStore.js';
 import { getProductsWithStock } from '../api/productApi.js';
-import { router, navigate } from '../router/index.js'; // import navigate เพิ่ม
+import { router, navigate } from '../router/index.js';
 
-// --- Helper Functions for Rendering ---
+// --- Helper: Render Functions ---
 
-function renderProductCard(product) { /* ... โค้ดส่วนนี้เหมือนเดิมจากแชทที่ 67 ไม่ต้องแก้ไข ... */ }
+function renderProductCard(product) {
+  const isOutOfStock = product.stock <= 0;
+  const isLowStock = product.stock > 0 && product.stock < 5;
+  const imageUrl = product.image_url || 'https://placehold.co/600x400/e2e8f0/64748b?text=No+Image';
+  const disabledClass = isOutOfStock ? 'product-card--out-of-stock' : '';
+  const disabledAttribute = isOutOfStock ? 'disabled' : '';
+  const lowStockIndicator = isLowStock ? `<div class="product-card__low-stock">สต็อกใกล้หมด</div>` : '';
 
-function renderProductGrid() { /* ... โค้ดส่วนนี้เหมือนเดิมจากแชทที่ 67 ไม่ต้องแก้ไข ... */ }
+  return `
+    <button class="product-card ${disabledClass}" data-product-id="${product.id}" ${disabledAttribute}>
+      <img src="${imageUrl}" alt="${product.name}" class="product-card__image">
+      <div class="product-card__info">
+        <h3 class="product-card__name">${product.name}</h3>
+        <p class="product-card__price">${product.price} บาท</p>
+      </div>
+      <div class="product-card__stock">คงเหลือ: ${product.stock}</div>
+      ${lowStockIndicator}
+    </button>
+  `;
+}
 
-// --- ฟังก์ชันใหม่สำหรับ Render ตะกร้าสินค้า ---
+function renderProductGrid() {
+  const productsByCategory = productStore.getProductsByCategory();
+  const categories = Object.keys(productsByCategory);
+  const productGridElement = document.getElementById('product-grid');
+  if (!productGridElement) return;
+
+  let html = '';
+  for (const category of categories) {
+    html += `<h2 class="category-title">${category}</h2>`;
+    html += `<div class="product-list">${productsByCategory[category].map(renderProductCard).join('')}</div>`;
+  }
+  productGridElement.innerHTML = html;
+}
+
 function renderCart() {
   const cartItemsElement = document.getElementById('cart-items');
   const cartSummaryElement = document.getElementById('cart-summary');
@@ -56,7 +86,8 @@ function renderCart() {
   `;
 }
 
-// --- ฟังก์ชันใหม่สำหรับจัดการการคลิกต่างๆ ---
+// --- Helper: Event Handlers ---
+
 function handleProductClick(event) {
   const productCard = event.target.closest('.product-card');
   if (!productCard || productCard.disabled) return;
@@ -65,12 +96,11 @@ function handleProductClick(event) {
   const product = productStore.getProductById(productId);
 
   if (product) {
-    // สำหรับตอนนี้ เราจะจัดการเฉพาะสินค้าที่มีราคาเดียว
     if (product.price) {
       cartStore.addItem(product, product.price);
     } else {
-      // ในอนาคต เราจะเปิด Modal ที่นี่สำหรับสินค้าหลายราคา
       console.log('Multi-price product clicked. Modal needed.');
+      // TODO: Open price selection modal
     }
   }
 }
@@ -78,58 +108,67 @@ function handleProductClick(event) {
 function handleCartClick(event) {
   const actionButton = event.target.closest('[data-action]');
   if (!actionButton) return;
-
   const cartItemElement = event.target.closest('.cart-item');
   const cartItemId = cartItemElement.dataset.cartItemId;
   const action = actionButton.dataset.action;
-
   const item = cartStore.getCart().find(i => i.id === cartItemId);
   if (!item) return;
 
-  if (action === 'increase') {
-    cartStore.updateItemQuantity(cartItemId, item.quantity + 1);
-  } else if (action === 'decrease') {
-    cartStore.updateItemQuantity(cartItemId, item.quantity - 1);
-  } else if (action === 'remove') {
-    cartStore.removeItem(cartItemId);
-  }
+  if (action === 'increase') cartStore.updateItemQuantity(cartItemId, item.quantity + 1);
+  if (action === 'decrease') cartStore.updateItemQuantity(cartItemId, item.quantity - 1);
+  if (action === 'remove') cartStore.removeItem(cartItemId);
 }
 
-
-// --- Main Page Component (ฉบับอัปเดต) ---
+// --- Main Page Component ---
 export function PosPage() {
   const currentUser = userStore.getCurrentUser();
-  if (!currentUser) { /* ... โค้ดป้องกันเหมือนเดิม ... */ }
+  if (!currentUser) { /* ... defensive code ... */ return { view: '...' }; }
 
-  const view = `...`; // <-- view HTML หลักเหมือนเดิมทุกประการจากแชทที่ 59 ไม่ต้องแก้ไข
-  
+  const view = `
+    <div class="pos-page-container">
+      <aside class="sidebar">
+        <h2 class="sidebar-title">ตะกร้าสินค้า</h2>
+        <div id="cart-items" class="cart-items-container"></div>
+        <div id="cart-summary"></div>
+      </aside>
+      <main class="main-content">
+        <header class="main-header">
+          <h1>สินค้า</h1>
+          <div class="user-info">
+            <span>พนักงาน: <strong>${currentUser.name}</strong> (${currentUser.role})</span>
+            <button id="logout-button" class="logout-button">ออกจากระบบ</button>
+          </div>
+        </header>
+        <section id="product-grid" class="product-grid-container"></section>
+      </main>
+    </div>
+  `;
+
   const postRender = async () => {
-    // --- ส่วนนี้คือหัวใจของการทำงานทั้งหมด ---
-
-    // 1. ดึงข้อมูลสินค้า (เหมือนเดิม)
     const shopId = currentUser.shop_id;
-    const products = await getProductsWithStock(shopId);
-    productStore.setProducts(products);
-
-    // 2. Render ส่วนต่างๆ ของหน้าจอ
-    renderProductGrid();
-    renderCart(); // Render ตะกร้าครั้งแรก
+    if (productStore.getProducts().length === 0) {
+      const products = await getProductsWithStock(shopId);
+      productStore.setProducts(products);
+    }
     
-    // 3. "ติดตาม" การเปลี่ยนแปลงของ State
-    const unsubscribeCart = cartStore.subscribe(renderCart); // ทุกครั้งที่ cartStore เปลี่ยน ให้ renderCart ใหม่
-    // const unsubscribeProducts = productStore.subscribe(renderProductGrid); // ถ้าต้องการให้ real-time
-
-    // 4. "ดักฟัง" การกระทำของผู้ใช้
-    document.getElementById('product-grid')?.addEventListener('click', handleProductClick);
-    document.getElementById('cart-items')?.addEventListener('click', handleCartClick);
-    document.getElementById('logout-button')?.addEventListener('click', () => {
+    renderProductGrid();
+    renderCart();
+    
+    const unsubscribeCart = cartStore.subscribe(renderCart);
+    
+    const productGrid = document.getElementById('product-grid');
+    const cartItems = document.getElementById('cart-items');
+    const logoutButton = document.getElementById('logout-button');
+    
+    productGrid?.addEventListener('click', handleProductClick);
+    cartItems?.addEventListener('click', handleCartClick);
+    logoutButton?.addEventListener('click', () => {
       userStore.signOut();
       router.init();
-      // ยกเลิกการติดตามเพื่อป้องกัน memory leak เมื่อออกจากหน้านี้
       unsubscribeCart();
-      // unsubscribeProducts();
     });
   };
 
   return { view, postRender };
 }
+
