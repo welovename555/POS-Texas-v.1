@@ -1,8 +1,27 @@
+import { signInWithPin } from '../api/authApi.js';
+import { userStore } from '../state/userStore.js';
+
+// --- Helper Functions for this page ---
+
+function getDOMElements() {
+  return {
+    pinInput: document.getElementById('pin-input'),
+    numpad: document.getElementById('numpad'),
+    loginButton: document.getElementById('login-button'),
+    errorMessage: document.getElementById('error-message'),
+  };
+}
+
 function handleNumpad(event) {
-  const pinInput = document.getElementById('pin-input');
+  const { pinInput, errorMessage } = getDOMElements();
   const key = event.target.dataset.key;
 
-  if (!key) return; // ถ้าคลิกนอกปุ่ม ให้ไม่ต้องทำอะไร
+  if (!key) return;
+
+  // เมื่อผู้ใช้เริ่มพิมพ์ใหม่ ให้ซ่อนข้อความ error
+  if (errorMessage.textContent) {
+    errorMessage.textContent = '';
+  }
 
   if (key >= '0' && key <= '9') {
     if (pinInput.value.length < 4) {
@@ -15,7 +34,46 @@ function handleNumpad(event) {
   }
 }
 
-// Component ที่คืนค่าเป็น Object ที่มี view และ postRender
+async function handleLogin() {
+  const { pinInput, loginButton, errorMessage } = getDOMElements();
+  const pin = pinInput.value;
+
+  if (pin.length < 4) return;
+
+  // --- Visual Feedback for Loading ---
+  const originalButtonText = loginButton.textContent;
+  loginButton.textContent = 'กำลังตรวจสอบ...';
+  loginButton.disabled = true;
+
+  try {
+    const userData = await signInWithPin(pin);
+
+    if (userData) {
+      // --- Login Success ---
+      userStore.signIn(userData);
+      // ในขั้นตอนต่อไป เราจะให้ router พาไปหน้าอื่น
+      // ตอนนี้แค่แสดงผลว่าสำเร็จ
+      loginButton.style.backgroundColor = '#22c55e'; // สีเขียว
+      loginButton.textContent = `ยินดีต้อนรับ, ${userData.name}`;
+      console.log('Logged in user data:', userStore.getCurrentUser());
+
+    } else {
+      // --- Login Failed ---
+      errorMessage.textContent = 'รหัส PIN ไม่ถูกต้อง';
+      pinInput.value = '';
+      loginButton.textContent = originalButtonText;
+      loginButton.disabled = false;
+    }
+  } catch (error) {
+    errorMessage.textContent = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
+    loginButton.textContent = originalButtonText;
+    loginButton.disabled = false;
+  }
+}
+
+
+// --- Main Page Component ---
+
 export function LoginPage() {
   const view = `
     <div class="login-page">
@@ -26,6 +84,8 @@ export function LoginPage() {
         <div class="login-page__pin-display">
           <input type="password" id="pin-input" class="pin-display__input" maxlength="4" readonly inputmode="numeric" pattern="[0-9]*">
         </div>
+
+        <p id="error-message" class="login-page__error"></p>
 
         <div class="login-page__numpad" id="numpad">
           <button class="numpad__button" data-key="1">1</button>
@@ -47,11 +107,10 @@ export function LoginPage() {
     </div>
   `;
 
-  // ฟังก์ชันที่จะถูกเรียกใช้หลังจาก HTML ถูก render ลงบนหน้าจอแล้ว
   const postRender = () => {
-    const numpad = document.getElementById('numpad');
-    // ใช้ Event Delegation เพื่อจัดการการคลิกทั้งหมดใน numpad
+    const { numpad, loginButton } = getDOMElements();
     numpad.addEventListener('click', handleNumpad);
+    loginButton.addEventListener('click', handleLogin);
   };
 
   return { view, postRender };
