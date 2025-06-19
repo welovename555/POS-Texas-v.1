@@ -8,16 +8,12 @@ import { supabase } from '../lib/supabaseClient.js';
 export async function getProductsWithStock(shopId) {
   if (!shopId) {
     console.error('getProductsWithStock requires a shopId.');
-    return []; // คืนค่าอาร์เรย์ว่างถ้าไม่มี shopId
+    return [];
   }
 
   console.log(`Fetching products and stock for shop_id: ${shopId}`);
 
   try {
-    // นี่คือการ Join ข้อมูลด้วย Supabase JS Client
-    // - select `*` จาก products
-    // - select `stock` จากตาราง `product_stocks` ที่มีความสัมพันธ์กัน
-    // - filter `product_stocks` ให้เอาเฉพาะแถวที่ `shop_id` ตรงกับที่ระบุ
     const { data: products, error } = await supabase
       .from('products')
       .select(`
@@ -33,17 +29,20 @@ export async function getProductsWithStock(shopId) {
       return [];
     }
 
-    // Supabase จะคืนค่า stock มาในรูปแบบอาร์เรย์ เช่น product_stocks: [{ stock: 10 }]
-    // เราจะทำการแปลงข้อมูล (transform) ให้อยู่ในรูปแบบที่ใช้งานง่ายขึ้น
+    // ▼▼▼▼▼ จุดที่แก้ไข ▼▼▼▼▼
+    // ปรับปรุง Logic การแปลงข้อมูลให้มีความปลอดภัยและรอบคอบมากขึ้น
     const formattedProducts = products.map(p => {
+      // ตรวจสอบให้แน่ใจว่า p.product_stocks เป็นอาร์เรย์และมีข้อมูลจริงๆ ก่อนที่จะเข้าถึง
+      const hasStockInfo = p.product_stocks && Array.isArray(p.product_stocks) && p.product_stocks.length > 0;
+      const stock = hasStockInfo ? p.product_stocks[0].stock : 0;
+
       return {
         ...p,
-        // ถ้ามีข้อมูลสต็อก ให้ดึงค่า stock ออกมา, ถ้าไม่เจอ (เป็นอาร์เรย์ว่าง) ให้สต็อกเป็น 0
-        stock: p.product_stocks.length > 0 ? p.product_stocks[0].stock : 0,
+        stock: stock,
       };
     });
+    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
     
-    // ลบ property `product_stocks` ที่ไม่จำเป็นทิ้งไป
     formattedProducts.forEach(p => delete p.product_stocks);
 
     console.log('Formatted products with stock:', formattedProducts);
