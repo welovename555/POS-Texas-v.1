@@ -10,11 +10,11 @@ export async function signInWithPin(pin) {
 
   try {
     // ▼▼▼▼▼ จุดที่แก้ไข ▼▼▼▼▼
-    // เปลี่ยนจาก 'pin' เป็น 'รหัส' ให้ตรงกับชื่อคอลัมน์ในตาราง Supabase ของคุณ
+    // เปลี่ยนจาก 'รหัส' เป็น 'id' ซึ่งเป็นชื่อคอลัมน์ที่แท้จริงสำหรับเก็บ PIN
     const { data, error } = await supabase
       .from('employees')
       .select('*')
-      .eq('รหัส', pin) // <--- แก้ไขที่บรรทัดนี้
+      .eq('id', pin) // <--- แก้ไขที่บรรทัดนี้
       .single();
     // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
@@ -24,7 +24,7 @@ export async function signInWithPin(pin) {
     }
 
     if (!data) {
-      console.log('PIN not found.');
+      console.log('PIN not found in "id" column.');
       return null;
     }
 
