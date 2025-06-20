@@ -160,3 +160,24 @@ body {
   40%, 60% { transform: translateX(4px); }
 }
 .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+
+/* === Login Page Layout (ส่วนที่ตกหล่นไป) === */
+
+.login-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  padding: 1rem;
+}
+
+.login-page__form {
+  width: 100%;
+  max-width: 360px; /* <-- คุณสามารถปรับ 'ความกว้าง' ของกล่องล็อกอินได้ที่นี่ */
+  padding: 2rem;
+  border-radius: 12px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
