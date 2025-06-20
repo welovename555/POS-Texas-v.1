@@ -8,19 +8,18 @@ function main() {
   const isLoggedIn = userStore.isLoggedIn();
 
   if (isLoggedIn) {
-    // ถ้าล็อกอินอยู่แล้ว: ให้สร้าง Layout หลักทั้งหมด
     const { view, postRender } = AppLayout();
     appContainer.innerHTML = view;
     if (postRender) postRender();
-
-    // แล้วค่อยให้ router จัดการเนื้อหาข้างใน
+    
+    // เรียกใช้ init ของ router
     router.init();
   } else {
-    // ถ้ายังไม่ล็อกอิน: ให้แสดงแค่หน้า Login
     const { view, postRender } = LoginPage();
     appContainer.innerHTML = view;
     if (postRender) postRender();
   }
 }
 
-main();
+// รอให้ DOM พร้อมเต็มที่ก่อน แล้วค่อยเริ่มการทำงาน
+document.addEventListener('DOMContentLoaded', main);
