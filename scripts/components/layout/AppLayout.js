@@ -1,5 +1,6 @@
 import { userStore } from '../../state/userStore.js';
-import { navigate } from '../../router/index.js';
+// ▼▼▼▼▼ จุดที่แก้ไข 1: import ทั้ง router และ navigate ▼▼▼▼▼
+import { router, navigate } from '../../router/index.js';
 
 export function AppLayout() {
   const currentUser = userStore.getCurrentUser();
@@ -8,7 +9,6 @@ export function AppLayout() {
     return { view: '', postRender: () => {} };
   }
 
-  // สร้างปุ่ม Admin เฉพาะเมื่อเป็น admin
   let adminMenuHtml = '';
   if (currentUser.role === 'admin') {
     adminMenuHtml = `
@@ -62,11 +62,13 @@ export function AppLayout() {
       const link = e.target.closest('.sidebar__link');
       if (!link) return;
 
+      // ▼▼▼▼▼ จุดที่แก้ไข 2: ปรับปรุง Logic การ Logout ▼▼▼▼▼
       if (link.id === 'logout-button') {
         userStore.signOut();
-        router.init(); // ใช้ router.init() เพื่อให้มัน redirect ไป /login เอง
+        navigate('/login'); // ใช้ navigate('/login') ซึ่งเป็นวิธีที่ถูกต้อง
         return;
       }
+      // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
       const path = link.dataset.path;
       if (path) {
