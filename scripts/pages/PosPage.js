@@ -8,26 +8,141 @@ import { navigate } from '../router/index.js';
 import { Modal } from '../components/common/Modal.js';
 
 let activeCategory = null;
-let cleanupFunc = null; 
+let cleanupFunc = null;
 
-// --- Helper: Render Functions ---
-// (All render functions: renderProductCard, renderFilteredProducts, renderSummaryBar are correct and unchanged)
-function renderProductCard(product){const isOutOfStock=product.stock<=0;const imageUrl=product.imageUrl||'https://placehold.co/300x300/e2e8f0/64748b?text=No+Image';const disabledAttribute=isOutOfStock?'disabled':'';const priceDisplay=product.price?`${product.price} บาท`:(product.prices||[]).join('/')+' บาท';const lowStockIndicator=(product.stock>0&&product.stock<5)?`<div class="product-card__low-stock">สต็อกใกล้หมด</div>`:'';return`<button class="pos-product-card" data-product-id="${product.id}" ${disabledAttribute}><div class="pos-product-card__image-wrapper"><img src="${imageUrl}" alt="${product.name}" class="pos-product-card__image"></div><div class="pos-product-card__info"><h3 class="pos-product-card__name">${product.name}</h3><p class="pos-product-card__price">${priceDisplay}</p><p class="pos-product-card__stock">เหลือ ${product.stock}</p></div>${lowStockIndicator}</button>`}
-function renderFilteredProducts(){const productsByCategory=productStore.getProductsByCategory();const productContainer=document.getElementById('product-list-area');if(!productContainer)return;if(!activeCategory||!productsByCategory[activeCategory]){activeCategory=Object.keys(productsByCategory)[0]||null}
-document.querySelectorAll('.category-pill').forEach(btn=>{btn.classList.toggle('active',btn.dataset.category===activeCategory)});const productsToShow=productsByCategory[activeCategory]||[];productContainer.innerHTML=`<div class="product-list-horizontal">${productsToShow.map(renderProductCard).join('')}</div>`}
-function renderSummaryBar(){const summaryBar=document.getElementById('summary-bar');if(!summaryBar)return;const total=cartStore.getCartTotal();const itemCount=cartStore.getCartItemCount();if(itemCount===0){summaryBar.classList.remove('visible');return}summaryBar.classList.add('visible');summaryBar.innerHTML=`<div class="summary-text" id="summary-bar-text"><span>${itemCount} รายการ</span><strong>รวม ${total.toFixed(2)} บาท</strong></div><button class="checkout-button-main" id="checkout-btn">ชำระเงิน</button>`}
+// =================================================================
+// SECTION 1: HELPER FUNCTIONS
+// =================================================================
 
+function renderProductCard(product) {
+    const isOutOfStock = product.stock <= 0;
+    const imageUrl = product.imageUrl || 'https://placehold.co/300x300/e2e8f0/64748b?text=No+Image';
+    const disabledAttribute = isOutOfStock ? 'disabled' : '';
+    const priceDisplay = product.price ? `${product.price} บาท` : (product.prices || []).join('/') + ' บาท';
+    const lowStockIndicator = (product.stock > 0 && product.stock < 5) ? `<div class="product-card__low-stock">สต็อกใกล้หมด</div>` : '';
 
-// --- Helper: Event Handlers & Checkout Flow ---
-// (All helper functions: openPriceSelectionModal, showSuccessAnimation, handleCheckout are correct and unchanged)
-function openPriceSelectionModal(product){const prices=product.prices||[];const contentHtml=`<div class="price-modal"><h3 class="price-modal__title">เลือกราคาสำหรับ "${product.name}"</h3><div class="price-modal__buttons" id="price-options">${prices.map(price=>`<button class="price-btn" data-price="${price}">${price} บาท</button>`).join('')}</div></div>`;const afterOpen=()=>{document.getElementById('price-options')?.addEventListener('click',e=>{const priceButton=e.target.closest('.price-btn');if(priceButton){const selectedPrice=parseFloat(priceButton.dataset.price);cartStore.addItem(product,selectedPrice);Modal.close()}})};Modal.open(contentHtml,afterOpen)}
-function showSuccessAnimation(onComplete){const animationHtml=`<div class="success-animation"><div class="progress-bar" id="success-progress-bar"></div><span id="success-progress-text">0%</span></div>`;Modal.open(animationHtml,()=>{const bar=document.getElementById('success-progress-bar');const text=document.getElementById('success-progress-text');let width=0;const interval=setInterval(()=>{if(width>=100){clearInterval(interval);setTimeout(()=>{Modal.close();onComplete()},500)}else{width++;bar.style.width=`${width}%`;text.textContent=`${width}%`}},15)})}
-async function handleCheckout(){const total=cartStore.getCartTotal();const contentHtml=`<div class="payment-modal-final">...</div>`;const afterOpen=()=>{/*...*/};Modal.open(contentHtml,afterOpen)} // Logic is complex and correct from previous steps
+    return `
+        <button class="pos-product-card" data-product-id="${product.id}" ${disabledAttribute}>
+            <div class="pos-product-card__image-wrapper"><img src="${imageUrl}" alt="${product.name}" class="pos-product-card__image"></div>
+            <div class="pos-product-card__info">
+                <h3 class="pos-product-card__name">${product.name}</h3>
+                <p class="pos-product-card__price">${priceDisplay}</p>
+                <p class="pos-product-card__stock">เหลือ ${product.stock}</p>
+            </div>
+            ${lowStockIndicator}
+        </button>
+    `;
+}
 
+function renderFilteredProducts() {
+    const productsByCategory = productStore.getProductsByCategory();
+    const productContainer = document.getElementById('product-list-area');
+    if (!productContainer) return;
 
-// --- Main Page Component ---
+    if (!activeCategory || !productsByCategory[activeCategory]) {
+        activeCategory = Object.keys(productsByCategory)[0] || null;
+    }
+    
+    document.querySelectorAll('.category-pill').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.category === activeCategory);
+    });
+
+    const productsToShow = productsByCategory[activeCategory] || [];
+    productContainer.innerHTML = `<div class="product-list-horizontal">${productsToShow.map(renderProductCard).join('')}</div>`;
+}
+
+function renderSummaryBar() {
+    const summaryBar = document.getElementById('summary-bar');
+    if (!summaryBar) return;
+    const total = cartStore.getCartTotal();
+    const itemCount = cartStore.getCartItemCount();
+
+    if (itemCount === 0) {
+        summaryBar.classList.remove('visible');
+        return;
+    }
+    summaryBar.classList.add('visible');
+    summaryBar.innerHTML = `<div class="summary-text" id="summary-bar-text"><span>${itemCount} รายการ</span><strong>รวม ${total.toFixed(2)} บาท</strong></div><button class="checkout-button-main" id="checkout-btn">ชำระเงิน</button>`;
+}
+
+function openPriceSelectionModal(product) {
+    const prices = product.prices || [];
+    const contentHtml = `<div class="price-modal"><h3 class="price-modal__title">เลือกราคาสำหรับ "${product.name}"</h3><div class="price-modal__buttons" id="price-options">${prices.map(price => `<button class="price-btn" data-price="${price}">${price} บาท</button>`).join('')}</div></div>`;
+    
+    const afterOpen = () => {
+        document.getElementById('price-options')?.addEventListener('click', e => {
+            const priceButton = e.target.closest('.price-btn');
+            if (priceButton) {
+                const selectedPrice = parseFloat(priceButton.dataset.price);
+                cartStore.addItem(product, selectedPrice);
+                Modal.close();
+            }
+        });
+    };
+    Modal.open(contentHtml, afterOpen);
+}
+
+function showSuccessAnimation(onComplete) {
+    const animationHtml = `<div class="success-animation"><div class="progress-bar" id="success-progress-bar"></div><span id="success-progress-text">0%</span></div>`;
+    Modal.open(animationHtml, () => {
+        const bar = document.getElementById('success-progress-bar');
+        const text = document.getElementById('success-progress-text');
+        let width = 0;
+        const interval = setInterval(() => {
+            if (width >= 100) {
+                clearInterval(interval);
+                setTimeout(() => { Modal.close(); onComplete(); }, 500);
+            } else {
+                width++;
+                bar.style.width = `${width}%`;
+                text.textContent = `${width}%`;
+            }
+        }, 15);
+    });
+}
+
+async function handleCheckout() {
+    const total = cartStore.getCartTotal();
+    const cart = cartStore.getCart();
+    
+    const contentHtml = `...`; // HTML for Payment Modal
+    const afterOpen = () => {
+        let selectedPayment = 'cash';
+        // ... Logic for payment modal listeners
+        document.getElementById('confirm-payment-btn')?.addEventListener('click', async () => {
+            const cashReceived = parseFloat(document.getElementById('cash-received').value) || 0;
+            if(selectedPayment === 'cash' && cashReceived < total) { /* ... */ return; }
+            
+            const currentUser = userStore.getCurrentUser();
+            const shift = await findOrCreateActiveShift({ employeeId: currentUser.id });
+            if (!shift) { /* ... */ return; }
+
+            const saleData = {
+                shiftId: shift.id,
+                employeeId: currentUser.id,
+                paymentType: selectedPayment,
+                shopId: currentUser.shopId,
+                cartItems: cart.map(item => ({
+                    productId: item.productId,
+                    quantity: item.quantity,
+                    price: item.price
+                }))
+            };
+
+            const { success, error } = await createSaleTransaction(saleData);
+            if(success) {
+                showSuccessAnimation(() => { /* ... */ });
+            } else { /* ... */ }
+        });
+    };
+    Modal.open(contentHtml, afterOpen);
+}
+
+// =================================================================
+// SECTION 2: MAIN PAGE COMPONENT
+// =================================================================
+
 export function PosPage() {
-    // โหลดข้อมูลครั้งแรก ถ้ายังไม่มี
     if (productStore.getProducts().length === 0) {
         setTimeout(async () => {
             const currentUser = userStore.getCurrentUser();
@@ -54,23 +169,18 @@ export function PosPage() {
                 <button id="search-btn" class="header-icon-btn" title="ค้นหา"><i class="bi bi-search"></i></button>
             </header>
             <nav class="category-selector" id="category-selector">${categoryPillsHtml}</nav>
-            <main class="product-grid-container" id="product-list-area">
-                </main>
+            <main class="product-grid-container" id="product-list-area"></main>
             <footer class="summary-bar" id="summary-bar"></footer>
         </div>
     `;
 
     const postRender = () => {
-        if (cleanupFunc) {
-            cleanupFunc();
-        }
+        if (cleanupFunc) cleanupFunc();
         
-        // ▼▼▼▼▼ จุดที่แก้ไข: ให้ดักฟังที่ Element หลักของหน้านี้เอง ▼▼▼▼▼
         const pageWrapper = document.getElementById('pos-page-wrapper');
         if (!pageWrapper) return;
 
         const handlePageClick = (event) => {
-            // Product click
             const productCard = event.target.closest('.pos-product-card');
             if (productCard && !productCard.disabled) {
                 const productId = productCard.dataset.productId;
@@ -82,22 +192,17 @@ export function PosPage() {
                 }
                 return;
             }
-
-            // Category pill click
             const categoryPill = event.target.closest('.category-pill');
             if (categoryPill) {
                 activeCategory = categoryPill.dataset.category;
                 renderFilteredProducts();
                 return;
             }
-
-            // Checkout button click
             if (event.target.closest('#checkout-btn')) {
                 openPaymentModal();
             }
         };
         pageWrapper.addEventListener('click', handlePageClick);
-        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
         const unsubscribeCart = cartStore.subscribe(renderSummaryBar);
         const unsubscribeProducts = productStore.subscribe(renderFilteredProducts);
