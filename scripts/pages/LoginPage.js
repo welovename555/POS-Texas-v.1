@@ -14,49 +14,53 @@ function getDOMElements() {
 }
 
 async function handleLogin(pin) {
-  const { loginForm, errorMessage } = getDOMElements();
+  console.log(`--- [DEBUG] 1. handleLogin started with PIN: ${pin}`);
+  const { pinInput, loginForm, errorMessage } = getDOMElements();
 
-  // ทำให้ปุ่มกดไม่ได้ชั่วคราวขณะตรวจสอบ
   loginForm.style.pointerEvents = 'none';
   errorMessage.textContent = 'กำลังตรวจสอบ...';
 
   try {
+    console.log('--- [DEBUG] 2. Calling signInWithPin...');
     const userData = await signInWithPin(pin);
+    console.log('--- [DEBUG] 3. signInWithPin returned:', userData);
 
     if (userData) {
+      console.log('--- [DEBUG] 4. Login SUCCESS. Storing user...');
       userStore.signIn(userData);
+
+      console.log('--- [DEBUG] 5. Attempting to navigate to /pos...');
       navigate('/pos');
+      console.log('--- [DEBUG] 6. Navigation command issued.');
+      
     } else {
+      console.log('--- [DEBUG] 4a. Login FAILED (PIN incorrect). Adding shake animation.');
       errorMessage.textContent = 'รหัส PIN ไม่ถูกต้อง';
       loginForm.classList.add('shake');
       
-      // เคลียร์ค่าหลังจากสั่นเสร็จ
       setTimeout(() => {
-        const { pinInput } = getDOMElements();
         if(pinInput) pinInput.value = '';
         loginForm.classList.remove('shake');
         loginForm.style.pointerEvents = 'auto';
       }, 500);
     }
   } catch (error) {
+    console.error('--- [DEBUG] X. An ERROR was caught in handleLogin:', error);
     errorMessage.textContent = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
     loginForm.style.pointerEvents = 'auto';
   }
 }
 
-// ▼▼▼▼▼ ปรับปรุง Logic ในฟังก์ชันนี้ใหม่ทั้งหมด ▼▼▼▼▼
 function handleNumpad(event) {
   const { pinInput, errorMessage } = getDOMElements();
   const key = event.target.dataset.key;
 
   if (!key) return;
 
-  // เคลียร์ข้อความ error เก่าทิ้งเมื่อผู้ใช้เริ่มพิมพ์
   if (errorMessage.textContent) {
     errorMessage.textContent = '';
   }
 
-  // จัดการปุ่ม Clear และ Backspace ก่อน
   if (key === 'clear') {
     pinInput.value = '';
     return;
@@ -66,17 +70,14 @@ function handleNumpad(event) {
     return;
   }
 
-  // จัดการปุ่มตัวเลข (จะเพิ่มได้ก็ต่อเมื่อยังไม่ครบ 4 ตัว)
   if (pinInput.value.length < 4) {
     pinInput.value += key;
   }
 
-  // ตรวจสอบเพื่อล็อกอินอัตโนมัติ *หลังจาก* เพิ่มตัวเลขแล้ว
   if (pinInput.value.length === 4) {
     handleLogin(pinInput.value);
   }
 }
-// ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
 // --- Main Page Component ---
 
