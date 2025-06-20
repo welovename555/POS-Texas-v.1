@@ -1,5 +1,4 @@
 import { userStore } from '../../state/userStore.js';
-// ▼▼▼▼▼ จุดที่แก้ไข 1: import ทั้ง router และ navigate ▼▼▼▼▼
 import { router, navigate } from '../../router/index.js';
 
 export function AppLayout() {
@@ -11,9 +10,10 @@ export function AppLayout() {
 
   let adminMenuHtml = '';
   if (currentUser.role === 'admin') {
+    // เพิ่ม title="จัดการร้าน"
     adminMenuHtml = `
-      <a href="/#/admin" class="sidebar__link" data-path="/admin">
-        <span>🔧</span><span>จัดการร้าน</span>
+      <a href="/#/admin" class="sidebar__link" data-path="/admin" title="จัดการร้าน">
+        <span>🔧</span>
       </a>
     `;
   }
@@ -23,29 +23,25 @@ export function AppLayout() {
       <nav class="sidebar" id="main-sidebar">
         <div class="sidebar__profile">
           <div class="profile-avatar">${currentUser.name.charAt(0)}</div>
-          <div class="profile-info">
-            <div class="profile-name">${currentUser.name}</div>
-            <div class="profile-role">${currentUser.role}</div>
-          </div>
         </div>
         <div class="sidebar__menu">
-          <a href="/#/pos" class="sidebar__link active" data-path="/pos">
-            <span>🛒</span><span>ขายของ</span>
+          <a href="/#/pos" class="sidebar__link active" data-path="/pos" title="ขายของ">
+            <span>🛒</span>
           </a>
-          <a href="/#/history" class="sidebar__link" data-path="/history">
-            <span>🧾</span><span>ประวัติการขาย</span>
+          <a href="/#/history" class="sidebar__link" data-path="/history" title="ประวัติการขาย">
+            <span>🧾</span>
           </a>
-          <a href="#" class="sidebar__link" data-path="/add-stock">
-            <span>📦</span><span>เพิ่มสต็อก</span>
+          <a href="#" class="sidebar__link" data-path="/add-stock" title="เพิ่มสต็อก">
+            <span>📦</span>
           </a>
-          <a href="#" class="sidebar__link" data-path="/close-shift">
-            <span>📋</span><span>สรุปยอดขาย</span>
+          <a href="#" class="sidebar__link" data-path="/close-shift" title="สรุปยอดขาย">
+            <span>📋</span>
           </a>
           ${adminMenuHtml}
         </div>
         <div class="sidebar__footer">
-          <button id="logout-button" class="sidebar__link sidebar__link--logout">
-            <span>🔌</span><span>ออกจากระบบ</span>
+          <button id="logout-button" class="sidebar__link sidebar__link--logout" title="ออกจากระบบ">
+            <span>🔌</span>
           </button>
         </div>
       </nav>
@@ -62,13 +58,11 @@ export function AppLayout() {
       const link = e.target.closest('.sidebar__link');
       if (!link) return;
 
-      // ▼▼▼▼▼ จุดที่แก้ไข 2: ปรับปรุง Logic การ Logout ▼▼▼▼▼
       if (link.id === 'logout-button') {
         userStore.signOut();
-        navigate('/login'); // ใช้ navigate('/login') ซึ่งเป็นวิธีที่ถูกต้อง
+        navigate('/login');
         return;
       }
-      // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
       const path = link.dataset.path;
       if (path) {
