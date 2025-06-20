@@ -8,61 +8,68 @@ function getDOMElements() {
   return {
     pinInput: document.getElementById('pin-input'),
     numpad: document.getElementById('numpad'),
-    loginButton: document.getElementById('login-button'),
+    loginForm: document.querySelector('.login-page__form'), // เพิ่มการเข้าถึงฟอร์มหลัก
     errorMessage: document.getElementById('error-message'),
   };
 }
 
-function handleNumpad(event) {
-  const { pinInput, errorMessage } = getDOMElements();
-  const key = event.target.dataset.key;
+// ฟังก์ชัน handleLogin ถูกปรับปรุงให้รับค่า pin โดยตรง
+async function handleLogin(pin) {
+  const { pinInput, loginForm, errorMessage } = getDOMElements();
 
-  if (!key) return;
-
-  if (errorMessage.textContent) {
-    errorMessage.textContent = '';
-  }
-
-  if (key >= '0' && key <= '9') {
-    if (pinInput.value.length < 4) {
-      pinInput.value += key;
-    }
-  } else if (key === 'clear') {
-    pinInput.value = '';
-  } else if (key === 'backspace') {
-    pinInput.value = pinInput.value.slice(0, -1);
-  }
-}
-
-async function handleLogin() {
-  const { pinInput, loginButton, errorMessage } = getDOMElements();
-  const pin = pinInput.value;
-
-  if (pin.length < 4) return;
-
-  const originalButtonText = loginButton.textContent;
-  loginButton.textContent = 'กำลังตรวจสอบ...';
-  loginButton.disabled = true;
+  // แสดงสถานะว่ากำลังโหลด (เช่น ทำให้แป้นพิมพ์กดไม่ได้ชั่วคราว)
+  loginForm.style.pointerEvents = 'none';
+  errorMessage.textContent = 'กำลังตรวจสอบ...';
 
   try {
     const userData = await signInWithPin(pin);
 
     if (userData) {
+      // --- Login Success ---
       userStore.signIn(userData);
       navigate('/pos');
     } else {
+      // --- Login Failed (เพิ่ม Animation) ---
       errorMessage.textContent = 'รหัส PIN ไม่ถูกต้อง';
+      loginForm.classList.add('shake'); // เพิ่ม class เพื่อให้สั่น
       pinInput.value = '';
-      loginButton.textContent = originalButtonText;
-      loginButton.disabled = false;
+
+      // หลังจาก Animation จบ (0.5 วินาที) ให้เอา class ออกเพื่อให้สั่นใหม่ได้
+      setTimeout(() => {
+        loginForm.classList.remove('shake');
+        loginForm.style.pointerEvents = 'auto'; // คืนให้กดได้เหมือนเดิม
+      }, 500);
     }
   } catch (error) {
     errorMessage.textContent = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
-    loginButton.textContent = originalButtonText;
-    loginButton.disabled = false;
+    loginForm.style.pointerEvents = 'auto';
   }
 }
 
+function handleNumpad(event) {
+  const { pinInput } = getDOMElements();
+  const key = event.target.dataset.key;
+
+  if (!key || pinInput.value.length >= 4) {
+    // ถ้ากดนอกปุ่ม หรือ PIN เต็มแล้ว ไม่ต้องทำอะไร
+    if (key !== 'clear' && key !== 'backspace') return;
+  }
+  
+  handleNumpad.errorMessageElement.textContent = ''; // เคลียร์ error message เมื่อเริ่มพิมพ์
+
+  if (key >= '0' && key <= '9') {
+    pinInput.value += key;
+  } else if (key === 'clear') {
+    pinInput.value = '';
+  } else if (key === 'backspace') {
+    pinInput.value = pinInput.value.slice(0, -1);
+  }
+
+  // --- Logic ใหม่: ล็อกอินอัตโนมัติ ---
+  if (pinInput.value.length === 4) {
+    handleLogin(pinInput.value);
+  }
+}
 
 // --- Main Page Component ---
 
@@ -94,15 +101,14 @@ export function LoginPage() {
           <button class="numpad__button numpad__button--backspace" data-key="backspace">⌫</button>
         </div>
 
-        <button class="login-page__button" id="login-button">เข้าสู่ระบบ</button>
-      </div>
+        </div>
     </div>
   `;
 
   const postRender = () => {
-    const { numpad, loginButton } = getDOMElements();
+    const { numpad, errorMessage } = getDOMElements();
+    handleNumpad.errorMessageElement = errorMessage; // ส่ง error message element ไปให้ฟังก์ชัน
     numpad.addEventListener('click', handleNumpad);
-    loginButton.addEventListener('click', handleLogin);
   };
 
   return { view, postRender };
