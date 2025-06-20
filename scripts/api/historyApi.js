@@ -24,8 +24,8 @@ export async function getSalesHistoryByDate(date) {
   console.log(`Fetching sales history from ${startDate.toISOString()} to ${endDate.toISOString()}`);
 
   try {
-    // ดึงข้อมูลจาก sales และ join ข้อมูลจาก products และ employees ที่เกี่ยวข้อง
-    // Supabase จะฉลาดพอที่จะ join ตารางที่มี foreign key ให้เราโดยอัตโนมัติ
+    // การ Join ข้อมูลด้วย Supabase JS Client
+    // Supabase จะหาความสัมพันธ์จาก Foreign Key ที่เราสร้างไว้ให้โดยอัตโนมัติ
     const { data: sales, error } = await supabase
       .from('sales')
       .select(`
@@ -37,10 +37,10 @@ export async function getSalesHistoryByDate(date) {
         products ( name ),
         employees ( name )
       `)
-      .eq('employees.shopId', currentUser.shopId) // Filter เฉพาะสาขาของพนักงานที่ล็อกอิน
-      .gte('createdAt', startDate.toISOString()) // >= เวลาเริ่มต้น
-      .lt('createdAt', endDate.toISOString())    // < เวลาสิ้นสุด
-      .order('createdAt', { ascending: false }); // เรียงจากล่าสุดไปเก่าสุด
+      .eq('employees.shopId', currentUser.shopId)
+      .gte('createdAt', startDate.toISOString())
+      .lt('createdAt', endDate.toISOString())
+      .order('createdAt', { ascending: false });
 
     if (error) {
       console.error('Error fetching sales history:', error.message);
