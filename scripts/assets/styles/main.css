@@ -503,3 +503,20 @@ body {
   animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
 }
 
+
+/* --- Admin Button Styles --- */
+.admin-button {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  color: #ffffff;
+  background-color: #f59e0b; /* สีเหลืองอำพัน */
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-left: 1rem; /* เพิ่มระยะห่างจากชื่อ */
+  transition: background-color 0.2s;
+}
+
+.admin-button:hover {
+  background-color: #d97706;
+}
