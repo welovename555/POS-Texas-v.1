@@ -2,30 +2,28 @@ import { supabase } from '../lib/supabaseClient.js';
 import { userStore } from '../state/userStore.js';
 
 /**
- * ดึงข้อมูลประวัติการขายตามวันที่ระบุ (ช่วงเวลา 06:00 ถึง 02:00 ของวันถัดไป)
- * @param {Date} date - อ็อบเจกต์ Date ของวันที่ต้องการดูข้อมูล
+ * ดึงข้อมูลประวัติการขายตามวันที่ระบุ (โดยใช้ Date String)
+ * @param {string} dateString - วันที่ในรูปแบบ "YYYY-MM-DD"
  * @returns {Promise<Array>} อาร์เรย์ของรายการขายที่ผ่านการจัดรูปแบบแล้ว
  */
-export async function getSalesHistoryByDate(date) {
+export async function getSalesHistoryByDate(dateString) {
   const currentUser = userStore.getCurrentUser();
   if (!currentUser || !currentUser.shopId) {
     console.error('Cannot get history: No user or shopId found.');
     return [];
   }
 
-  // --- คำนวณช่วงเวลา ---
-  const startDate = new Date(date);
-  startDate.setHours(6, 0, 0, 0); // 06:00:00 ของวันที่เลือก
+  // --- คำนวณช่วงเวลาใหม่ที่แม่นยำกว่าเดิม ---
+  const selectedDate = new Date(dateString);
+  const startDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 6, 0, 0);
 
-  const endDate = new Date(date);
-  endDate.setDate(endDate.getDate() + 1); // ไปวันถัดไป
-  endDate.setHours(2, 0, 0, 0); // 02:00:00 ของวันถัดไป
+  const endDate = new Date(startDate);
+  endDate.setDate(startDate.getDate() + 1);
+  endDate.setHours(2, 0, 0, 0);
 
   console.log(`Fetching sales history from ${startDate.toISOString()} to ${endDate.toISOString()}`);
 
   try {
-    // การ Join ข้อมูลด้วย Supabase JS Client
-    // Supabase จะหาความสัมพันธ์จาก Foreign Key ที่เราสร้างไว้ให้โดยอัตโนมัติ
     const { data: sales, error } = await supabase
       .from('sales')
       .select(`
@@ -47,7 +45,7 @@ export async function getSalesHistoryByDate(date) {
       return [];
     }
 
-    // จัดรูปแบบข้อมูลเพื่อให้ UI นำไปใช้ได้ง่าย
+    // จัดรูปแบบข้อมูล (เหมือนเดิม)
     const formattedHistory = sales.map(sale => ({
       time: new Date(sale.createdAt).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }),
       productName: sale.products ? sale.products.name : 'N/A',
