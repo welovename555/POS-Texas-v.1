@@ -1,4 +1,6 @@
 import { userStore } from '../state/userStore.js';
+import { productStore } from '../state/productStore.js';
+import { getProductsWithStock } from '../api/productApi.js';
 import { AppLayout } from '../components/layout/AppLayout.js';
 import { LoginPage } from '../pages/LoginPage.js';
 import { PosPage } from '../pages/PosPage.js';
@@ -12,67 +14,65 @@ const routes = {
   '/pos': PosPage,
   '/admin': AdminPage,
   '/history': HistoryPage,
+  // เมื่อเราสร้างหน้าใหม่ๆ ก็จะมาเพิ่มที่นี่
+  '/add-stock': PosPage, // Default to PosPage for now
+  '/close-shift': PosPage, // Default to PosPage for now
 };
 
-const protectedRoutes = ['/pos', '/admin', 'history'];
-const adminOnlyRoutes = ['/admin'];
+// ฟังก์ชันสำหรับจัดการการโหลดข้อมูลของแต่ละหน้า
+async function routeLoader(path) {
+  const currentUser = userStore.getCurrentUser();
+  if (!currentUser) return; // ไม่ต้องทำอะไรถ้าไม่ล็อกอิน
 
-// ฟังก์ชัน render ใหม่ จะ render ทั้ง Layout และ Page
-function render(path) {
+  // กฎ: ถ้าจะไปหน้า POS และยังไม่มีข้อมูลสินค้า ให้ไปโหลดมาก่อน
+  if (path === '/pos' && productStore.getProducts().length === 0) {
+    console.log('Router is loading products...');
+    const products = await getProductsWithStock(currentUser.shopId);
+    productStore.setProducts(products);
+  }
+  // ในอนาคต เราสามารถเพิ่มกฎสำหรับหน้า history ที่นี่ได้
+}
+
+async function render(path) {
   const isLoggedIn = userStore.isLoggedIn();
+  const validPath = routes[path] ? path : '/pos'; // ถ้า path ไม่มีอยู่จริง ให้ไปที่ /pos
 
-  // --- Route Protection ---
-  if (!isLoggedIn && path !== '/login') {
-    navigate('/login');
-    return;
-  }
-  if (isLoggedIn && path === '/login') {
-    navigate('/pos');
-    return;
-  }
-  
-  const isAdminRoute = adminOnlyRoutes.includes(path);
-  if (isLoggedIn && isAdminRoute && userStore.getCurrentUser().role !== 'admin') {
-    navigate('/pos');
-    return;
-  }
+  if (!isLoggedIn && validPath !== '/login') { navigate('/login'); return; }
+  if (isLoggedIn && validPath === '/login') { navigate('/pos'); return; }
 
-  // --- Rendering ---
   if (isLoggedIn) {
-    // ถ้าล็อกอินอยู่ ให้ render Layout หลักก่อน
-    const { view, postRender: layoutPostRender } = AppLayout();
-    appContainer.innerHTML = view;
-    if (layoutPostRender) layoutPostRender();
+    appContainer.innerHTML = AppLayout().view;
+    AppLayout().postRender();
+    
+    // ▼▼▼▼▼ การเปลี่ยนแปลงสำคัญ ▼▼▼▼▼
+    // เรียกใช้ Loader เพื่อโหลดข้อมูลก่อน แล้วค่อย render page
+    await routeLoader(validPath);
 
-    // จากนั้น render page ลงใน content area
     const contentContainer = document.getElementById('main-content');
-    const pageComponent = routes[path] || PosPage;
+    const pageComponent = routes[validPath];
     if (contentContainer && pageComponent) {
-      const { view: pageView, postRender: pagePostRender } = pageComponent();
-      contentContainer.innerHTML = pageView;
-      if (pagePostRender) pagePostRender();
+      const { view, postRender } = pageComponent();
+      contentContainer.innerHTML = view;
+      if (postRender) postRender();
     }
+    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
   } else {
-    // ถ้ายังไม่ล็อกอิน ให้ render หน้า Login
     const { view, postRender } = LoginPage();
     appContainer.innerHTML = view;
     if (postRender) postRender();
   }
 }
 
-// ฟังก์ชัน navigate จะมีหน้าที่แค่เปลี่ยน hash
 export function navigate(path) {
   const newPath = path.startsWith('/') ? path : '/' + path;
   window.location.hash = newPath;
 }
 
-// init จะมีหน้าที่แค่ติดตั้ง listener
 export const router = {
   init() {
-    window.addEventListener('hashchange', () => render(window.location.hash.slice(1)));
-    
-    // Initial load
-    const initialPath = window.location.hash.slice(1) || '/login';
+    window.addEventListener('hashchange', () => render(window.location.hash.slice(1) || '/'));
+    const initialPath = window.location.hash.slice(1) || (userStore.isLoggedIn() ? '/pos' : '/login');
     render(initialPath);
   },
 };
