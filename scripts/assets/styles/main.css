@@ -691,3 +691,28 @@ body {
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
   flex-shrink: 0;
 }
+
+/* --- Compact Sidebar Styles --- */
+
+.sidebar {
+  width: 80px; /* ลดความกว้างลง */
+  padding: 1rem 0.5rem; /* ปรับ padding */
+}
+
+.sidebar__profile {
+  justify-content: center; /* จัด avatar ให้อยู่กลาง */
+}
+
+/* ซ่อนข้อมูลชื่อและตำแหน่งเมื่อ sidebar แคบ */
+.sidebar__profile .profile-info {
+  display: none;
+}
+
+.sidebar__link {
+  justify-content: center; /* จัดไอคอนให้อยู่กลาง */
+}
+
+/* ซ่อนข้อความในเมนู */
+.sidebar__link span:last-child {
+  display: none;
+}
