@@ -716,3 +716,9 @@ body {
 .sidebar__link span:last-child {
   display: none;
 }
+
+/* --- Icon Styles --- */
+.sidebar__link i {
+  font-size: 1.5rem; /* กำหนดขนาดไอคอน */
+  line-height: 1;
+}
