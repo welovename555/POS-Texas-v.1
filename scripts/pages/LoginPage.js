@@ -8,16 +8,15 @@ function getDOMElements() {
   return {
     pinInput: document.getElementById('pin-input'),
     numpad: document.getElementById('numpad'),
-    loginForm: document.querySelector('.login-page__form'), // เพิ่มการเข้าถึงฟอร์มหลัก
+    loginForm: document.querySelector('.login-page__form'),
     errorMessage: document.getElementById('error-message'),
   };
 }
 
-// ฟังก์ชัน handleLogin ถูกปรับปรุงให้รับค่า pin โดยตรง
 async function handleLogin(pin) {
-  const { pinInput, loginForm, errorMessage } = getDOMElements();
+  const { loginForm, errorMessage } = getDOMElements();
 
-  // แสดงสถานะว่ากำลังโหลด (เช่น ทำให้แป้นพิมพ์กดไม่ได้ชั่วคราว)
+  // ทำให้ปุ่มกดไม่ได้ชั่วคราวขณะตรวจสอบ
   loginForm.style.pointerEvents = 'none';
   errorMessage.textContent = 'กำลังตรวจสอบ...';
 
@@ -25,19 +24,18 @@ async function handleLogin(pin) {
     const userData = await signInWithPin(pin);
 
     if (userData) {
-      // --- Login Success ---
       userStore.signIn(userData);
       navigate('/pos');
     } else {
-      // --- Login Failed (เพิ่ม Animation) ---
       errorMessage.textContent = 'รหัส PIN ไม่ถูกต้อง';
-      loginForm.classList.add('shake'); // เพิ่ม class เพื่อให้สั่น
-      pinInput.value = '';
-
-      // หลังจาก Animation จบ (0.5 วินาที) ให้เอา class ออกเพื่อให้สั่นใหม่ได้
+      loginForm.classList.add('shake');
+      
+      // เคลียร์ค่าหลังจากสั่นเสร็จ
       setTimeout(() => {
+        const { pinInput } = getDOMElements();
+        if(pinInput) pinInput.value = '';
         loginForm.classList.remove('shake');
-        loginForm.style.pointerEvents = 'auto'; // คืนให้กดได้เหมือนเดิม
+        loginForm.style.pointerEvents = 'auto';
       }, 500);
     }
   } catch (error) {
@@ -46,30 +44,39 @@ async function handleLogin(pin) {
   }
 }
 
+// ▼▼▼▼▼ ปรับปรุง Logic ในฟังก์ชันนี้ใหม่ทั้งหมด ▼▼▼▼▼
 function handleNumpad(event) {
-  const { pinInput } = getDOMElements();
+  const { pinInput, errorMessage } = getDOMElements();
   const key = event.target.dataset.key;
 
-  if (!key || pinInput.value.length >= 4) {
-    // ถ้ากดนอกปุ่ม หรือ PIN เต็มแล้ว ไม่ต้องทำอะไร
-    if (key !== 'clear' && key !== 'backspace') return;
-  }
-  
-  handleNumpad.errorMessageElement.textContent = ''; // เคลียร์ error message เมื่อเริ่มพิมพ์
+  if (!key) return;
 
-  if (key >= '0' && key <= '9') {
-    pinInput.value += key;
-  } else if (key === 'clear') {
+  // เคลียร์ข้อความ error เก่าทิ้งเมื่อผู้ใช้เริ่มพิมพ์
+  if (errorMessage.textContent) {
+    errorMessage.textContent = '';
+  }
+
+  // จัดการปุ่ม Clear และ Backspace ก่อน
+  if (key === 'clear') {
     pinInput.value = '';
-  } else if (key === 'backspace') {
+    return;
+  }
+  if (key === 'backspace') {
     pinInput.value = pinInput.value.slice(0, -1);
+    return;
   }
 
-  // --- Logic ใหม่: ล็อกอินอัตโนมัติ ---
+  // จัดการปุ่มตัวเลข (จะเพิ่มได้ก็ต่อเมื่อยังไม่ครบ 4 ตัว)
+  if (pinInput.value.length < 4) {
+    pinInput.value += key;
+  }
+
+  // ตรวจสอบเพื่อล็อกอินอัตโนมัติ *หลังจาก* เพิ่มตัวเลขแล้ว
   if (pinInput.value.length === 4) {
     handleLogin(pinInput.value);
   }
 }
+// ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
 // --- Main Page Component ---
 
@@ -100,14 +107,12 @@ export function LoginPage() {
           <button class="numpad__button" data-key="0">0</button>
           <button class="numpad__button numpad__button--backspace" data-key="backspace">⌫</button>
         </div>
-
-        </div>
+      </div>
     </div>
   `;
 
   const postRender = () => {
-    const { numpad, errorMessage } = getDOMElements();
-    handleNumpad.errorMessageElement = errorMessage; // ส่ง error message element ไปให้ฟังก์ชัน
+    const { numpad } = getDOMElements();
     numpad.addEventListener('click', handleNumpad);
   };
 
