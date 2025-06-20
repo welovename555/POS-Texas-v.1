@@ -722,3 +722,161 @@ body {
   font-size: 1.5rem; /* กำหนดขนาดไอคอน */
   line-height: 1;
 }
+
+/* --- New POS Page Layout Styles (Layout ที่คุณออกแบบ) --- */
+
+/* เราจะครอบ Page ทั้งหมดด้วย container นี้เพื่อให้จัดการ Header และ Content ได้ */
+.page-content-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.pos-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  flex-shrink: 0; /* ไม่ให้หดตัว */
+}
+
+.pos-logo {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #1f2937;
+}
+
+.header-icon-btn {
+  font-size: 1.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #64748b;
+}
+
+.category-selector {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  flex-shrink: 0;
+  overflow-x: auto; /* ทำให้เลื่อนได้ถ้าหมวดหมู่เยอะ */
+}
+
+.category-pill {
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  border: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap; /* ไม่ให้ตัดคำ */
+}
+
+.category-pill.active {
+  background-color: #1f2937;
+  color: #ffffff;
+  border-color: #1f2937;
+}
+
+.product-container {
+  flex-grow: 1; /* ให้ส่วนนี้ขยายเต็มพื้นที่ที่เหลือ */
+  padding: 1.5rem;
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto; /* <-- ทำให้เลื่อนซ้าย-ขวาได้ */
+}
+
+.pos-product-card {
+  all: unset;
+  flex-shrink: 0; /* ไม่ให้การ์ดหดตัว */
+  width: 160px; /* <-- คุณสามารถปรับ 'ความกว้าง' ของการ์ดสินค้าได้ที่นี่ */
+  border-radius: 8px;
+  background-color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s;
+}
+.pos-product-card:active {
+  transform: scale(0.97);
+}
+.pos-product-card:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pos-product-card__image-wrapper {
+  aspect-ratio: 1 / 1; /* ทำให้รูปเป็นสี่เหลี่ยมจัตุรัส */
+}
+
+.pos-product-card__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.pos-product-card__info {
+  padding: 0.75rem;
+}
+.pos-product-card__name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+.pos-product-card__price {
+  color: #0ea5e9;
+  font-size: 0.875rem;
+}
+.pos-product-card__stock {
+  font-size: 0.75rem;
+  color: #64748b;
+  padding: 0 0.75rem 0.75rem;
+}
+
+
+/* แถบสรุปยอดด้านล่าง */
+.summary-bar {
+  height: 10vh; /* <-- คุณสามารถปรับ 'ความสูง' ของแถบนี้ได้ (10vh = 10% ของความสูงหน้าจอ) */
+  flex-shrink: 0;
+  background-color: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 1.5rem;
+}
+
+.summary-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.summary-text span {
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.summary-text strong {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.checkout-button-main {
+  padding: 1rem 2rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #ffffff;
+  background-color: #16a34a;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
