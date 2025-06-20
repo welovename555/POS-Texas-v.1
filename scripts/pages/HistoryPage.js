@@ -1,8 +1,7 @@
 import { getSalesHistoryByDate } from '../api/historyApi.js';
-import { navigate } from '../router/index.js';
+// navigate ไม่ได้ถูกใช้ในไฟล์นี้ ผมลบออกเพื่อความสะอาด
+// import { navigate } from '../router/index.js';
 
-// --- State ภายในของหน้านี้ ---
-let selectedDate = new Date();
 let isLoading = false;
 
 // --- Helper Functions ---
@@ -16,11 +15,8 @@ function renderHistoryTable(historyData) {
     return;
   }
 
-  // จัดกลุ่มข้อมูลตาม transactionId
   const groupedByTransaction = historyData.reduce((acc, sale) => {
-    if (!acc[sale.transactionId]) {
-      acc[sale.transactionId] = [];
-    }
+    if (!acc[sale.transactionId]) { acc[sale.transactionId] = []; }
     acc[sale.transactionId].push(sale);
     return acc;
   }, {});
@@ -29,7 +25,6 @@ function renderHistoryTable(historyData) {
   for (const transactionId in groupedByTransaction) {
     const salesInTransaction = groupedByTransaction[transactionId];
     salesInTransaction.forEach((sale, index) => {
-      // แสดงเส้นขอบเฉพาะแถวแรกของแต่ละ transaction
       const transactionClass = index === 0 ? 'transaction-start' : '';
       html += `
         <tr class="${transactionClass}">
@@ -50,25 +45,29 @@ async function fetchAndRenderHistory() {
 
   const dateInput = document.getElementById('history-date-picker');
   const tableBody = document.getElementById('history-table-body');
-  selectedDate = new Date(dateInput.value);
+  if (!dateInput || !tableBody) return;
+
   isLoading = true;
   tableBody.innerHTML = '<tr><td colspan="5" class="text-center">กำลังโหลด...</td></tr>';
   
-  const historyData = await getSalesHistoryByDate(selectedDate);
+  // ▼▼▼▼▼ จุดที่แก้ไข ▼▼▼▼▼
+  // ส่ง dateInput.value ซึ่งเป็น string "YYYY-MM-DD" ไปโดยตรง
+  const historyData = await getSalesHistoryByDate(dateInput.value);
+  // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
   renderHistoryTable(historyData);
   isLoading = false;
 }
 
 // --- Main Page Component ---
 export function HistoryPage() {
-  // ตั้งค่า default ของ date picker ให้เป็นวันที่ปัจจุบัน
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toLocaleDateString('en-CA'); // ใช้ 'en-CA' เพื่อให้ได้ format "YYYY-MM-DD"
 
   const view = `
     <div class="page-container">
-      <header class="main-header">
+      <header class="page-header">
         <h1>ประวัติการขาย</h1>
-        </header>
+      </header>
       <main class="main-content">
         <div class="history-controls">
           <label for="history-date-picker">เลือกวันที่:</label>
@@ -86,8 +85,7 @@ export function HistoryPage() {
                 <th>พนักงานขาย</th>
               </tr>
             </thead>
-            <tbody id="history-table-body">
-              </tbody>
+            <tbody id="history-table-body"></tbody>
           </table>
         </div>
       </main>
@@ -95,11 +93,8 @@ export function HistoryPage() {
   `;
 
   const postRender = () => {
-    // เพิ่ม Event Listener ให้ปุ่มค้นหา
     const fetchBtn = document.getElementById('fetch-history-btn');
-    fetchBtn.addEventListener('click', fetchAndRenderHistory);
-
-    // โหลดข้อมูลของวันปัจจุบันขึ้นมาแสดงทันทีที่เปิดหน้า
+    fetchBtn?.addEventListener('click', fetchAndRenderHistory);
     fetchAndRenderHistory();
   };
 
