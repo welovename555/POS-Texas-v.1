@@ -11,7 +11,7 @@ let activeCategory = null;
 let cleanupFunc = null;
 
 // =================================================================
-// SECTION 1: HELPER FUNCTIONS
+// SECTION 1: HELPER FUNCTIONS (ย้ายทั้งหมดมารวมกันไว้ข้างบน)
 // =================================================================
 
 function renderProductCard(product) {
@@ -101,38 +101,97 @@ function showSuccessAnimation(onComplete) {
     });
 }
 
-async function handleCheckout() {
+async function handleCheckout(paymentType, cashReceived = 0) {
+    Modal.close();
+    const currentUser = userStore.getCurrentUser();
+    const cart = cartStore.getCart();
+    const total = cartStore.getCartTotal();
+
+    if (paymentType === 'cash' && cashReceived < total) {
+        alert('จำนวนเงินที่รับมาไม่เพียงพอ');
+        return;
+    }
+
+    const shift = await findOrCreateActiveShift({ employeeId: currentUser.id });
+    if (!shift) {
+        alert('ไม่สามารถหากะการทำงานได้');
+        return;
+    }
+
+    const saleData = {
+        shiftId: shift.id,
+        employeeId: currentUser.id,
+        paymentType: paymentType,
+        shopId: currentUser.shopId,
+        cartItems: cart.map(item => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            price: item.price
+        }))
+    };
+
+    const { success, error } = await createSaleTransaction(saleData);
+    if (success) {
+        showSuccessAnimation(async () => {
+            cartStore.clearCart();
+            const updatedProducts = await getProductsWithStock(currentUser.shopId);
+            productStore.setProducts(updatedProducts);
+        });
+    } else {
+        alert(`เกิดข้อผิดพลาดในการบันทึกการขาย: ${error.message}`);
+    }
+}
+
+function openPaymentModal() {
     const total = cartStore.getCartTotal();
     const cart = cartStore.getCart();
-    
-    const contentHtml = `...`; // HTML for Payment Modal
+    const contentHtml = `
+        <div class="payment-modal-final">
+            <div class="payment-modal-header">สรุปรายการ</div>
+            <div class="payment-modal-items">
+                ${cart.map(item => `<div class="payment-modal-item"><span>${item.name} (x${item.quantity})</span><span>${(item.price * item.quantity).toFixed(2)}</span></div>`).join('')}
+            </div>
+            <div class="payment-modal-total">
+                <span>ยอดรวม</span><strong>${total.toFixed(2)} บาท</strong>
+            </div>
+            <div class="payment-method" id="payment-method-selector">
+                <button class="payment-btn" data-method="transfer">โอนชำระ</button>
+                <button class="payment-btn active" data-method="cash">เงินสด</button>
+            </div>
+            <div class="cash-section" id="cash-section">
+                <label for="cash-received">รับเงินมา (บาท):</label>
+                <input type="number" id="cash-received" class="cash-input" placeholder="0.00">
+                <p class="change-display">เงินทอน: <span id="change-amount">0.00</span> บาท</p>
+            </div>
+            <div class="payment-modal__actions">
+                <button class="confirm-btn" id="confirm-payment-btn">ยืนยันการขาย</button>
+            </div>
+        </div>
+    `;
     const afterOpen = () => {
         let selectedPayment = 'cash';
-        // ... Logic for payment modal listeners
-        document.getElementById('confirm-payment-btn')?.addEventListener('click', async () => {
-            const cashReceived = parseFloat(document.getElementById('cash-received').value) || 0;
-            if(selectedPayment === 'cash' && cashReceived < total) { /* ... */ return; }
-            
-            const currentUser = userStore.getCurrentUser();
-            const shift = await findOrCreateActiveShift({ employeeId: currentUser.id });
-            if (!shift) { /* ... */ return; }
+        const cashSection = document.getElementById('cash-section');
+        const cashInput = document.getElementById('cash-received');
+        const changeAmount = document.getElementById('change-amount');
+        
+        document.getElementById('payment-method-selector')?.addEventListener('click', e => {
+            const btn = e.target.closest('.payment-btn');
+            if (!btn) return;
+            document.querySelectorAll('.payment-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedPayment = btn.dataset.method;
+            cashSection.style.display = selectedPayment === 'cash' ? 'block' : 'none';
+        });
 
-            const saleData = {
-                shiftId: shift.id,
-                employeeId: currentUser.id,
-                paymentType: selectedPayment,
-                shopId: currentUser.shopId,
-                cartItems: cart.map(item => ({
-                    productId: item.productId,
-                    quantity: item.quantity,
-                    price: item.price
-                }))
-            };
+        cashInput?.addEventListener('input', () => {
+            const received = parseFloat(cashInput.value) || 0;
+            const change = received - total;
+            changeAmount.textContent = change > 0 ? change.toFixed(2) : '0.00';
+        });
 
-            const { success, error } = await createSaleTransaction(saleData);
-            if(success) {
-                showSuccessAnimation(() => { /* ... */ });
-            } else { /* ... */ }
+        document.getElementById('confirm-payment-btn')?.addEventListener('click', () => {
+            const cashReceived = parseFloat(cashInput.value) || 0;
+            handleCheckout(selectedPayment, cashReceived);
         });
     };
     Modal.open(contentHtml, afterOpen);
@@ -181,6 +240,7 @@ export function PosPage() {
         if (!pageWrapper) return;
 
         const handlePageClick = (event) => {
+            // Product click
             const productCard = event.target.closest('.pos-product-card');
             if (productCard && !productCard.disabled) {
                 const productId = productCard.dataset.productId;
@@ -192,12 +252,16 @@ export function PosPage() {
                 }
                 return;
             }
+
+            // Category pill click
             const categoryPill = event.target.closest('.category-pill');
             if (categoryPill) {
                 activeCategory = categoryPill.dataset.category;
                 renderFilteredProducts();
                 return;
             }
+
+            // Checkout button click
             if (event.target.closest('#checkout-btn')) {
                 openPaymentModal();
             }
