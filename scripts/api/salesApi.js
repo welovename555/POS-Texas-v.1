@@ -11,6 +11,11 @@ export async function createSaleTransaction(saleData) {
     p_shop_id: saleData.shopId
   };
 
+  // --- บรรทัดสำหรับดีบัก ---
+  // เราจะแสดงข้อมูลทั้งหมดที่กำลังจะถูกส่งไปให้ Supabase ใน Console
+  console.log('DEBUG: Payload sent to RPC', payload);
+  // -------------------------
+
   const { data, error } = await supabase.rpc('handle_new_sale', payload);
 
   if (error) {
