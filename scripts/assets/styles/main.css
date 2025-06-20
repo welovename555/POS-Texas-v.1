@@ -1,626 +1,52 @@
 @import './_reset.css';
 
+/* === 1. Global & Body Styles === */
 body {
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
   background-color: #f4f4f5; /* สีเทาอ่อน */
   color: #18181b;
-  display: grid;
-  place-content: center;
-  min-height: 100vh;
+  /* overflow: hidden; ป้องกันการ scroll ทั้งหน้า */
 }
 
 #app {
-  text-align: center;
-}
-
-/* เพิ่มโค้ดนี้ต่อจากของเดิมในไฟล์ main.css */
-
-.login-page {
-  width: 100%;
-  max-width: 360px;
-  padding: 2rem;
-  background-color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  text-align: center;
-}
-
-.login-page__title {
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-}
-
-.login-page__subtitle {
-  font-size: 1rem;
-  color: #64748b;
-  margin-bottom: 2rem;
-}
-
-.login-page__pin-display {
-  margin-bottom: 2rem;
-}
-
-.pin-display__input {
-  width: 100%;
-  padding: 1rem;
-  font-size: 2rem;
-  text-align: center;
-  letter-spacing: 0.5em; /* ทำให้ตัวเลขห่างกัน */
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  background-color: #f8fafc;
-  user-select: none; /* ป้องกันการเลือกข้อความ */
-}
-
-.login-page__numpad {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.numpad__button {
-  padding: 1.25rem 0;
-  font-size: 1.5rem;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-  background-color: #ffffff;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.numpad__button:active {
-  background-color: #f1f5f9;
-}
-
-.login-page__button {
-  width: 100%;
-  padding: 1rem;
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #ffffff;
-  background-color: #0ea5e9; /* สีฟ้า */
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.login-page__button:hover {
-  background-color: #0284c7;
-}
-
-/* เพิ่มโค้ดนี้ต่อท้ายไฟล์ main.css */
-
-.login-page__error {
-  color: #ef4444; /* สีแดง */
-  font-weight: 500;
-  height: 1.25rem; /* จองพื้นที่ไว้จะได้ไม่กระโดด */
-  margin-bottom: 1rem;
-}
-
-.login-page__button:disabled {
-  background-color: #64748b;
-  cursor: not-allowed;
-}
-
-/* เพิ่มโค้ดนี้ต่อท้ายไฟล์ main.css */
-
-.pos-page {
-  width: 100%;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.pos-page__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 1.5rem;
-  background-color: #ffffff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  flex-shrink: 0;
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.logout-button {
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  color: #ffffff;
-  background-color: #71717a; /* สีเทา */
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.pos-page__main {
-  flex-grow: 1;
-  padding: 1.5rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-/* เพิ่มโค้ดนี้ต่อท้ายไฟล์ main.css */
-
-.pos-page-container {
-  display: flex;
   width: 100vw;
   height: 100vh;
-  background-color: #f4f4f5;
+  overflow: hidden;
 }
 
-.sidebar {
-  width: 380px;
-  flex-shrink: 0;
-  background-color: #ffffff;
-  padding: 1.5rem;
-  box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+
+/* === 2. App Layout & Sidebar === */
+.app-layout {
   display: flex;
-  flex-direction: column;
+  height: 100%;
 }
 
 .main-content {
   flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-}
-
-.main-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 1.5rem;
-  background-color: #ffffff;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  flex-shrink: 0;
-}
-
-.product-grid-container {
-  flex-grow: 1;
-  padding: 1.5rem;
-  overflow-y: auto; /* ทำให้เลื่อนดูสินค้าได้ */
-}
-
-.category-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid #e2e8f0;
-}
-
-.product-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.product-card {
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  background-color: #ffffff;
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-  display: flex;
-  flex-direction: column;
-  position: relative; /* สำหรับ low stock indicator */
-}
-
-.product-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-/* สไตล์สำหรับสินค้าหมดสต็อก */
-.product-card--out-of-stock {
-  opacity: 0.5;
-  cursor: not-allowed;
-  background-color: #f1f5f9;
-}
-
-.product-card__image {
-  width: 100%;
-  height: 140px;
-  object-fit: cover;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
-}
-
-.product-card__info {
-  padding: 0.75rem;
-  flex-grow: 1;
-}
-
-.product-card__name {
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: 0.25rem;
-}
-
-.product-card__price {
-  font-size: 0.875rem;
-  color: #0ea5e9;
-}
-
-.product-card__stock {
-  font-size: 0.875rem;
-  color: #64748b;
-  padding: 0.75rem;
-  border-top: 1px solid #e2e8f0;
-}
-
-.product-card__low-stock {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  background-color: #f59e0b; /* สีเหลือง */
-  color: #ffffff;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-/* เพิ่มโค้ดนี้ต่อท้ายไฟล์ main.css */
-
-/* ทำให้ button มีลักษณะเหมือน div เดิม */
-.product-card {
-  all: unset; /* ล้างสไตล์เริ่มต้นของ button */
-  display: flex;
-  flex-direction: column;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  background-color: #ffffff;
-  cursor: pointer;
-  text-align: left;
-  position: relative;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-/* สไตล์เมื่อ disabled */
-.product-card:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  background-color: #f1f5f9;
-}
-
-.product-card:disabled:hover {
-  transform: none;
-  box-shadow: none;
-}
-
-/* เพิ่มโค้ดนี้ต่อท้ายไฟล์ main.css */
-.sidebar-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  padding-bottom: 1rem;
-  margin-bottom: 1rem;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.cart-items-container {
-  flex-grow: 1;
-  overflow-y: auto;
-}
-
-.cart-empty-message {
-  color: #64748b;
-  text-align: center;
-  margin-top: 2rem;
-}
-
-.cart-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 0;
-  border-bottom: 1px solid #f1f5f9;
-}
-
-.cart-item__name {
-  font-weight: 500;
-}
-
-.cart-item__price {
-  font-size: 0.875rem;
-  color: #64748b;
-}
-
-.cart-item__controls {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.quantity-btn, .remove-btn {
-  background: none;
-  border: 1px solid #e2e8f0;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.remove-btn {
-  border-color: transparent;
-}
-
-.cart-summary {
-  padding-top: 1.5rem;
-  margin-top: auto;
-  border-top: 1px solid #e2e8f0;
-}
-
-.summary-line {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 0.75rem;
-  font-size: 1rem;
-}
-
-.summary-line--total {
-  font-size: 1.25rem;
-  font-weight: 700;
-}
-
-.checkout-button {
-  width: 100%;
-  padding: 1rem;
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #ffffff;
-  background-color: #16a34a; /* สีเขียว */
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  margin-top: 1rem;
-}
-
-/* --- Modal Styles --- */
-
-.modal-open {
-  overflow: hidden; /* ป้องกันการเลื่อนหน้าเว็บข้างหลัง */
-}
-
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.6);
-  z-index: 1000;
-}
-
-.modal {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-  z-index: 1001;
-  width: 90%;
-  max-width: 500px;
-}
-
-.modal__close-btn {
-  position: absolute;
-  top: 10px;
-  right: 15px;
-  font-size: 2rem;
-  font-weight: 300;
-  color: #64748b;
-  background: none;
-  border: none;
-  cursor: pointer;
-}
-
-.modal__content {
-  padding: 2rem;
-}
-
-/* --- Price Selection Modal Styles --- */
-
-.price-modal__title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-bottom: 1.5rem;
-  text-align: center;
-}
-
-.price-modal__buttons {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-}
-
-.price-btn {
-  padding: 1rem;
-  font-size: 1rem;
-  font-weight: 500;
-  border: 1px solid #e2e8f0;
-  background-color: #f8fafc;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.2s, border-color 0.2s;
-}
-
-.price-btn:hover {
-  background-color: #e2e8f0;
-  border-color: #cbd5e1;
-}
-
-/* --- Payment Modal & Success Animation Styles --- */
-.payment-modal__title{font-size:1.25rem;font-weight:600;margin-bottom:1rem;text-align:center}
-.payment-modal__total{font-size:1.5rem;font-weight:700;text-align:center;margin-bottom:1.5rem}
-.payment-modal__total span{color:#16a34a}
-.payment-method{display:flex;gap:1rem;margin-bottom:1.5rem}
-.payment-btn{flex:1;padding:1rem;font-size:1rem;border:2px solid #e2e8f0;border-radius:8px;background-color:#f8fafc;cursor:pointer}
-.payment-btn.active{border-color:#0ea5e9;background-color:#f0f9ff;font-weight:600}
-.cash-section{display:block;padding:1rem;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:1.5rem}
-.cash-section label{display:block;margin-bottom:.5rem;font-weight:500}
-.cash-input{width:100%;padding:.75rem;border-radius:6px;border:1px solid #cbd5e1;font-size:1.25rem;text-align:right}
-.change-display{margin-top:1rem;font-size:1.125rem;text-align:right}
-.change-display span{font-weight:700;color:#16a34a}
-.payment-modal__actions{display:flex}
-.confirm-btn{flex:1;padding:1rem;font-size:1.125rem;font-weight:600;color:#fff;background-color:#16a34a;border:none;border-radius:8px;cursor:pointer}
-.success-animation{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem}
-.progress-bar{width:100%;height:10px;background-color:#e2e8f0;border-radius:5px;overflow:hidden;transition:width .1s linear}
-#success-progress-bar{background-color:#22c55e;width:0;height:100%;border-radius:5px}
-#success-progress-text{font-size:1.5rem;font-weight:600}
-
-/* --- Shake Animation --- */
-@keyframes shake {
-  10%, 90% {
-    transform: translateX(-1px);
-  }
-  20%, 80% {
-    transform: translateX(2px);
-  }
-  30%, 50%, 70% {
-    transform: translateX(-4px);
-  }
-  40%, 60% {
-    transform: translateX(4px);
-  }
-}
-
-.shake {
-  animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
-}
-
-
-/* --- Admin Button Styles --- */
-.admin-button {
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  color: #ffffff;
-  background-color: #f59e0b; /* สีเหลืองอำพัน */
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  margin-left: 1rem; /* เพิ่มระยะห่างจากชื่อ */
-  transition: background-color 0.2s;
-}
-
-.admin-button:hover {
-  background-color: #d97706;
-}
-
-/* --- History Page Styles --- */
-.page-container {
-  width: 100%;
-  height: 100vh;
   display: flex;
-  flex-direction: column;
+  flex-direction: column; /* จัดการ layout แนวตั้ง */
 }
 
-.history-controls {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1.5rem;
-  background-color: #ffffff;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.history-controls label {
-  font-weight: 500;
-}
-
-.history-controls input[type="date"] {
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  font-size: 1rem;
-}
-
-.btn-primary {
-  padding: 0.5rem 1.5rem;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #ffffff;
-  background-color: #0ea5e9;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.history-table-container {
-  padding: 1.5rem;
-  flex-grow: 1;
-  overflow-y: auto;
-}
-
-.history-table {
-  width: 100%;
-  border-collapse: collapse;
-  background-color: #ffffff;
-}
-
-.history-table th, .history-table td {
-  padding: 0.75rem 1rem;
-  text-align: left;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.history-table th {
-  background-color: #f8fafc;
-  font-weight: 600;
-}
-
-.history-table .text-center {
-  text-align: center;
-  color: #64748b;
-  padding: 2rem;
-}
-
-/* สไตล์สำหรับเส้นแบ่ง transaction */
-.transaction-start td {
-  border-top: 2px solid #0ea5e9;
-}
-
-/* --- App Layout & Sidebar Styles --- */
-.app-layout {
-  display: flex;
-  height: 100vh;
-}
-
+/* --- Compact Sidebar Styles --- */
 .sidebar {
-  width: 240px;
-  background-color: #1f2937; /* สีเทาเข้ม */
+  width: 80px;
+  background-color: #1f2937;
   color: #d1d5db;
   display: flex;
   flex-direction: column;
-  padding: 1rem;
+  padding: 1rem 0.5rem;
   flex-shrink: 0;
+  align-items: center; /* จัดไอคอนให้อยู่กลาง */
 }
 
 .sidebar__profile {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  border-bottom: 1px solid #374151;
+  margin-bottom: 1.5rem;
 }
 
 .profile-avatar {
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   background-color: #0ea5e9;
   color: #ffffff;
@@ -628,43 +54,41 @@ body {
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 1.25rem;
-}
-
-.profile-name {
-  font-weight: 600;
-}
-
-.profile-role {
-  font-size: 0.875rem;
-  color: #9ca3af;
+  font-size: 1.5rem;
 }
 
 .sidebar__menu {
-  flex-grow: 1;
-  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
 }
 
 .sidebar__link {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 1rem;
-  padding: 0.75rem 1rem;
-  border-radius: 6px;
+  padding: 0.75rem;
+  border-radius: 8px;
   text-decoration: none;
-  color: #d1d5db;
-  font-weight: 500;
-  margin-bottom: 0.5rem;
-  transition: background-color 0.2s;
+  color: #9ca3af;
+  transition: background-color 0.2s, color 0.2s;
 }
 
 .sidebar__link:hover {
   background-color: #374151;
+  color: #ffffff;
 }
 
 .sidebar__link.active {
   background-color: #0ea5e9;
   color: #ffffff;
+}
+
+.sidebar__link i {
+  font-size: 1.75rem;
+  line-height: 1;
 }
 
 .sidebar__footer {
@@ -673,66 +97,45 @@ body {
 
 .sidebar__link--logout {
   width: 100%;
-  background-color: transparent;
+  background: none;
   border: none;
   font-size: 1rem;
   cursor: pointer;
 }
-/* แก้ไขให้ main-content ไม่ซ้อนกับ PosPage container */
-#app .main-content {
+
+/* === 3. Login Page === */
+.login-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   height: 100%;
 }
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 1.5rem;
+.login-page__form {
+  width: 100%;
+  max-width: 360px;
+  padding: 2rem;
   background-color: #ffffff;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  flex-shrink: 0;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  text-align: center;
 }
+.login-page__title { font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; }
+.login-page__subtitle { font-size: 1rem; color: #64748b; margin-bottom: 2rem; }
+.login-page__pin-display { margin-bottom: 1rem; }
+.pin-display__input { width: 100%; padding: 1rem; font-size: 2rem; text-align: center; letter-spacing: 0.5em; border: 1px solid #e2e8f0; border-radius: 8px; background-color: #f8fafc; }
+.login-page__error { color: #ef4444; font-weight: 500; height: 1.25rem; margin-bottom: 1rem; }
+.login-page__numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+.numpad__button { padding: 1.25rem 0; font-size: 1.5rem; border-radius: 8px; border: 1px solid #e2e8f0; background-color: #ffffff; cursor: pointer; transition: background-color 0.2s; }
+.numpad__button:active { background-color: #f1f5f9; }
 
-/* --- Compact Sidebar Styles --- */
-
-.sidebar {
-  width: 80px; /* ลดความกว้างลง */
-  padding: 1rem 0.5rem; /* ปรับ padding */
-}
-
-.sidebar__profile {
-  justify-content: center; /* จัด avatar ให้อยู่กลาง */
-}
-
-/* ซ่อนข้อมูลชื่อและตำแหน่งเมื่อ sidebar แคบ */
-.sidebar__profile .profile-info {
-  display: none;
-}
-
-.sidebar__link {
-  justify-content: center; /* จัดไอคอนให้อยู่กลาง */
-}
-
-/* ซ่อนข้อความในเมนู */
-.sidebar__link span:last-child {
-  display: none;
-}
-
-/* --- Icon Styles --- */
-.sidebar__link i {
-  font-size: 1.5rem; /* กำหนดขนาดไอคอน */
-  line-height: 1;
-}
-
-/* --- New POS Page Layout Styles (Layout ที่คุณออกแบบ) --- */
-
-/* เราจะครอบ Page ทั้งหมดด้วย container นี้เพื่อให้จัดการ Header และ Content ได้ */
+/* === 4. POS Page (New Layout) === */
 .page-content-wrapper {
   display: flex;
   flex-direction: column;
   height: 100%;
   width: 100%;
+  overflow: hidden; /* ป้องกันการเลื่อนนอกพื้นที่ */
 }
-
 .pos-page-header {
   display: flex;
   justify-content: space-between;
@@ -740,143 +143,65 @@ body {
   padding: 0.75rem 1.5rem;
   background-color: #ffffff;
   border-bottom: 1px solid #e2e8f0;
-  flex-shrink: 0; /* ไม่ให้หดตัว */
-}
-
-.pos-logo {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: #1f2937;
-}
-
-.header-icon-btn {
-  font-size: 1.5rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #64748b;
-}
-
-.category-selector {
-  display: flex;
-  gap: 0.75rem;
-  padding: 1rem 1.5rem;
-  background-color: #ffffff;
-  border-bottom: 1px solid #e2e8f0;
   flex-shrink: 0;
-  overflow-x: auto; /* ทำให้เลื่อนได้ถ้าหมวดหมู่เยอะ */
 }
+.pos-logo { font-size: 1.5rem; font-weight: 800; }
+.header-icon-btn { font-size: 1.5rem; background: none; border: none; cursor: pointer; color: #64748b; }
+.category-selector { display: flex; gap: 0.75rem; padding: 1rem 1.5rem; background-color: #f8fafc; border-bottom: 1px solid #e2e8f0; flex-shrink: 0; overflow-x: auto; }
+.category-pill { padding: 0.5rem 1rem; border-radius: 9999px; border: 1px solid #e2e8f0; background-color: #ffffff; font-weight: 500; cursor: pointer; white-space: nowrap; }
+.category-pill.active { background-color: #1f2937; color: #ffffff; border-color: #1f2937; }
 
-.category-pill {
-  padding: 0.5rem 1rem;
-  border-radius: 9999px;
-  border: 1px solid #e2e8f0;
-  background-color: #f8fafc;
-  font-weight: 500;
-  cursor: pointer;
-  white-space: nowrap; /* ไม่ให้ตัดคำ */
-}
-
-.category-pill.active {
-  background-color: #1f2937;
-  color: #ffffff;
-  border-color: #1f2937;
-}
-
-.product-container {
-  flex-grow: 1; /* ให้ส่วนนี้ขยายเต็มพื้นที่ที่เหลือ */
+.product-container-wrapper {
+  flex-grow: 1; /* ทำให้ขยายเต็มพื้นที่ที่เหลือ */
+  overflow-y: auto; /* ทำให้เลื่อนแนวตั้งสำหรับหมวดหมู่ได้ */
   padding: 1.5rem;
-  display: flex;
-  gap: 1rem;
-  overflow-x: auto; /* <-- ทำให้เลื่อนซ้าย-ขวาได้ */
 }
+.product-category-row { margin-bottom: 2rem; }
+.product-category-row .category-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; }
+.product-list { display: flex; overflow-x: auto; gap: 1rem; padding-bottom: 1rem; }
 
-.pos-product-card {
-  all: unset;
-  flex-shrink: 0; /* ไม่ให้การ์ดหดตัว */
-  width: 160px; /* <-- คุณสามารถปรับ 'ความกว้าง' ของการ์ดสินค้าได้ที่นี่ */
-  border-radius: 8px;
-  background-color: #ffffff;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  transition: transform 0.2s;
-}
-.pos-product-card:active {
-  transform: scale(0.97);
-}
-.pos-product-card:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
+.pos-product-card { all: unset; box-sizing: border-box; flex-shrink: 0; width: 160px; border-radius: 8px; background-color: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.05); cursor: pointer; display: flex; flex-direction: column; transition: transform 0.2s; }
+.pos-product-card:active { transform: scale(0.97); }
+.pos-product-card:disabled { opacity: 0.5; cursor: not-allowed; background-color: #f1f5f9; }
+.pos-product-card__image-wrapper { aspect-ratio: 1 / 1; }
+.pos-product-card__image { width: 100%; height: 100%; object-fit: cover; border-top-left-radius: 8px; border-top-right-radius: 8px; }
+.pos-product-card__info { padding: 0.75rem; }
+.pos-product-card__name { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.25rem; }
+.pos-product-card__price { color: #0ea5e9; font-size: 0.875rem; }
+.pos-product-card__stock { font-size: 0.75rem; color: #64748b; padding: 0 0.75rem 0.75rem; }
+.product-card__low-stock { position: absolute; top: 8px; left: 8px; background-color: #f59e0b; color: #ffffff; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
 
-.pos-product-card__image-wrapper {
-  aspect-ratio: 1 / 1; /* ทำให้รูปเป็นสี่เหลี่ยมจัตุรัส */
-}
-
-.pos-product-card__image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
-}
-
-.pos-product-card__info {
-  padding: 0.75rem;
-}
-.pos-product-card__name {
-  font-weight: 600;
-  font-size: 0.9rem;
-  margin-bottom: 0.25rem;
-}
-.pos-product-card__price {
-  color: #0ea5e9;
-  font-size: 0.875rem;
-}
-.pos-product-card__stock {
-  font-size: 0.75rem;
-  color: #64748b;
-  padding: 0 0.75rem 0.75rem;
-}
-
-
-/* แถบสรุปยอดด้านล่าง */
 .summary-bar {
-  height: 10vh; /* <-- คุณสามารถปรับ 'ความสูง' ของแถบนี้ได้ (10vh = 10% ของความสูงหน้าจอ) */
+  height: 12vh; /* <-- ปรับความสูงได้ที่นี่ */
   flex-shrink: 0;
   background-color: #ffffff;
   border-top: 1px solid #e2e8f0;
   box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
-  display: flex;
+  padding: 0 1.5rem;
+  display: none; /* เริ่มต้นซ่อนไว้ */
+}
+.summary-bar.visible {
+  display: flex; /* แสดงเมื่อมีของในตะกร้า */
   justify-content: space-between;
   align-items: center;
-  padding: 0 1.5rem;
 }
+.summary-text { display: flex; flex-direction: column; }
+.summary-text span { font-size: 0.875rem; color: #64748b; }
+.summary-text strong { font-size: 1.5rem; font-weight: 700; }
+.checkout-button-main { padding: 1rem 2rem; font-size: 1.125rem; font-weight: 700; color: #ffffff; background-color: #16a34a; border: none; border-radius: 8px; cursor: pointer; }
 
-.summary-text {
-  display: flex;
-  flex-direction: column;
-}
+/* === 5. Reusable Components (Modal, etc.) === */
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); z-index: 1000; }
+.modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #ffffff; border-radius: 8px; z-index: 1001; width: 90%; max-width: 500px; }
+.modal__close-btn { position: absolute; top: 10px; right: 15px; font-size: 2rem; color: #64748b; background: none; border: none; cursor: pointer; }
+.modal__content { padding: 2rem; }
+/* ... (สไตล์ modal อื่นๆ) ... */
 
-.summary-text span {
-  font-size: 0.875rem;
-  color: #64748b;
+/* === 6. Animations === */
+@keyframes shake {
+  10%, 90% { transform: translateX(-1px); }
+  20%, 80% { transform: translateX(2px); }
+  30%, 50%, 70% { transform: translateX(-4px); }
+  40%, 60% { transform: translateX(4px); }
 }
-
-.summary-text strong {
-  font-size: 1.5rem;
-  font-weight: 700;
-}
-
-.checkout-button-main {
-  padding: 1rem 2rem;
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: #ffffff;
-  background-color: #16a34a;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-}
+.shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
