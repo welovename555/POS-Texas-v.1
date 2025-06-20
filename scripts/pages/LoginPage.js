@@ -1,9 +1,13 @@
 import { signInWithPin } from '../api/authApi.js';
 import { userStore } from '../state/userStore.js';
+import { navigate } from '../router/index.js';
+
+// --- Helper Functions for this page ---
 
 function getDOMElements() {
   return {
     pinInput: document.getElementById('pin-input'),
+    numpad: document.getElementById('numpad'),
     loginForm: document.querySelector('.login-page__form'),
     errorMessage: document.getElementById('error-message'),
   };
@@ -11,6 +15,8 @@ function getDOMElements() {
 
 async function handleLogin(pin) {
   const { loginForm, errorMessage } = getDOMElements();
+  if (!loginForm || !errorMessage) return;
+
   loginForm.style.pointerEvents = 'none';
   errorMessage.textContent = 'กำลังตรวจสอบ...';
   try {
@@ -21,6 +27,7 @@ async function handleLogin(pin) {
     } else {
       errorMessage.textContent = 'รหัส PIN ไม่ถูกต้อง';
       loginForm.classList.add('shake');
+      
       setTimeout(() => {
         const { pinInput } = getDOMElements();
         if(pinInput) pinInput.value = '';
@@ -37,13 +44,32 @@ async function handleLogin(pin) {
 function handleNumpad(event) {
   const { pinInput, errorMessage } = getDOMElements();
   const key = event.target.dataset.key;
+
   if (!key) return;
-  if (errorMessage.textContent) { errorMessage.textContent = ''; }
-  if (key === 'clear') { pinInput.value = ''; return; }
-  if (key === 'backspace') { pinInput.value = pinInput.value.slice(0, -1); return; }
-  if (pinInput.value.length < 4) { pinInput.value += key; }
-  if (pinInput.value.length === 4) { handleLogin(pinInput.value); }
+
+  if (errorMessage.textContent) {
+    errorMessage.textContent = '';
+  }
+
+  if (key === 'clear') {
+    pinInput.value = '';
+    return;
+  }
+  if (key === 'backspace') {
+    pinInput.value = pinInput.value.slice(0, -1);
+    return;
+  }
+
+  if (pinInput.value.length < 4) {
+    pinInput.value += key;
+  }
+
+  if (pinInput.value.length === 4) {
+    handleLogin(pinInput.value);
+  }
 }
+
+// --- Main Page Component ---
 
 export function LoginPage() {
   const view = `
@@ -74,8 +100,17 @@ export function LoginPage() {
   `;
 
   const postRender = () => {
-    const { numpad } = getDOMElements();
-    numpad.addEventListener('click', handleNumpad);
+    // ▼▼▼▼▼ จุดที่แก้ไข ▼▼▼▼▼
+    // ใช้ setTimeout เพื่อให้แน่ใจว่า DOM พร้อมใช้งานแล้ว
+    setTimeout(() => {
+      const { numpad } = getDOMElements();
+      if (numpad) {
+        numpad.addEventListener('click', handleNumpad);
+      } else {
+        console.error('Login page: Numpad element not found!');
+      }
+    }, 0);
+    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
   };
 
   return { view, postRender };
