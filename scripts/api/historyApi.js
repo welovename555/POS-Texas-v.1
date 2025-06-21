@@ -1,66 +1,39 @@
+// scripts/api/historyApi.js
+
 import { supabase } from '../lib/supabaseClient.js';
-import { userStore } from '../state/userStore.js';
 
-/**
- * ดึงข้อมูลประวัติการขายตามวันที่ระบุ (โดยใช้ Date String)
- * @param {string} dateString - วันที่ในรูปแบบ "YYYY-MM-DD"
- * @returns {Promise<Array>} อาร์เรย์ของรายการขายที่ผ่านการจัดรูปแบบแล้ว
- */
-export async function getSalesHistoryByDate(dateString) {
-  const currentUser = userStore.getCurrentUser();
-  if (!currentUser || !currentUser.shopId) {
-    console.error('Cannot get history: No user or shopId found.');
-    return [];
+export async function fetchSalesHistory(date, shopId) {
+  const start = new Date(`${date}T00:00:00+07:00`).toISOString();
+  const end = new Date(`${date}T23:59:59+07:00`).toISOString();
+
+  const { data, error } = await supabase
+    .from('sales')
+    .select(
+      `
+      id,
+      transactionId,
+      shiftId,
+      employeeId,
+      productId,
+      qty,
+      price,
+      paymentType,
+      createdAt,
+      product:products (
+        id,
+        name
+      )
+    `
+    )
+    .gte('createdAt', start)
+    .lte('createdAt', end)
+    .eq('shopId', shopId) // ต้องมี column shopId ใน sales
+    .order('createdAt', { ascending: false });
+
+  if (error) {
+    console.error('[fetchSalesHistory] Supabase error:', error.message);
+    return { data: [], error };
   }
 
-  // --- คำนวณช่วงเวลาใหม่ที่แม่นยำกว่าเดิม ---
-  const selectedDate = new Date(dateString);
-  const startDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 6, 0, 0);
-
-  const endDate = new Date(startDate);
-  endDate.setDate(startDate.getDate() + 1);
-  endDate.setHours(2, 0, 0, 0);
-
-  console.log(`Fetching sales history from ${startDate.toISOString()} to ${endDate.toISOString()}`);
-
-  try {
-    const { data: sales, error } = await supabase
-      .from('sales')
-      .select(`
-        createdAt,
-        qty,
-        price,
-        paymentType,
-        transactionId,
-        products ( name ),
-        employees ( name )
-      `)
-      .eq('employees.shopId', currentUser.shopId)
-      .gte('createdAt', startDate.toISOString())
-      .lt('createdAt', endDate.toISOString())
-      .order('createdAt', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching sales history:', error.message);
-      return [];
-    }
-
-    // จัดรูปแบบข้อมูล (เหมือนเดิม)
-    const formattedHistory = sales.map(sale => ({
-      time: new Date(sale.createdAt).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }),
-      productName: sale.products ? sale.products.name : 'N/A',
-      quantity: sale.qty,
-      price: sale.price,
-      paymentType: sale.paymentType,
-      employeeName: sale.employees ? sale.employees.name : 'N/A',
-      transactionId: sale.transactionId,
-    }));
-
-    console.log('Formatted sales history:', formattedHistory);
-    return formattedHistory;
-
-  } catch (err) {
-    console.error('An unexpected error occurred in getSalesHistoryByDate:', err);
-    return [];
-  }
+  return { data, error: null };
 }
