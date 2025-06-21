@@ -14,13 +14,21 @@ let cleanupFunc = null;
 // SECTION 1: HELPER FUNCTIONS (ย้ายทั้งหมดมารวมกันไว้ข้างบน)
 // =================================================================
 
+function chunk(arr, size) {
+    const chunks = [];
+    if (!arr) return chunks;
+    for (let i = 0; i < arr.length; i += size) {
+        chunks.push(arr.slice(i, i + size));
+    }
+    return chunks;
+}
+
 function renderProductCard(product) {
     const isOutOfStock = product.stock <= 0;
     const imageUrl = product.imageUrl || 'https://placehold.co/300x300/e2e8f0/64748b?text=No+Image';
     const disabledAttribute = isOutOfStock ? 'disabled' : '';
     const priceDisplay = product.price ? `${product.price}` : (product.prices || []).join('/');
-    const lowStockIndicator = (product.stock > 0 && product.stock < 5) ? `<div class="product-card__low-stock">สต็อกใกล้หมด</div>` : '';
-
+    
     return `
         <button class="product-item" data-product-id="${product.id}" ${disabledAttribute}>
             <div class="product-item__image-wrapper">
@@ -122,6 +130,7 @@ function showSuccessAnimation(onComplete) {
 }
 
 async function handleCheckout(paymentType, cashReceived = 0) {
+    Modal.close();
     const currentUser = userStore.getCurrentUser();
     const cart = cartStore.getCart();
     const total = cartStore.getCartTotal();
@@ -130,7 +139,6 @@ async function handleCheckout(paymentType, cashReceived = 0) {
         alert('จำนวนเงินที่รับมาไม่เพียงพอ');
         return;
     }
-
     const shift = await findOrCreateActiveShift({ employeeId: currentUser.id });
     if (!shift) {
         alert('ไม่สามารถหากะการทำงานได้');
@@ -149,7 +157,6 @@ async function handleCheckout(paymentType, cashReceived = 0) {
         }))
     };
 
-    Modal.close();
     const { success, error } = await createSaleTransaction(saleData);
     if (success) {
         showSuccessAnimation(async () => {
@@ -186,8 +193,7 @@ function openPaymentModal() {
             <div class="payment-modal__actions">
                 <button class="confirm-btn" id="confirm-payment-btn">ยืนยันการขาย</button>
             </div>
-        </div>
-    `;
+        </div>`;
     const afterOpen = () => {
         let selectedPayment = 'cash';
         const cashSection = document.getElementById('cash-section');
@@ -216,16 +222,6 @@ function openPaymentModal() {
     };
     Modal.open(contentHtml, afterOpen);
 }
-
-function chunk(arr, size) {
-    const chunks = [];
-    if (!arr) return chunks;
-    for (let i = 0; i < arr.length; i += size) {
-        chunks.push(arr.slice(i, i + size));
-    }
-    return chunks;
-}
-
 
 // =================================================================
 // SECTION 2: MAIN PAGE COMPONENT
@@ -304,7 +300,7 @@ export function PosPage() {
 
         cleanupFunc = () => {
             pageWrapper.removeEventListener('click', handlePageClick);
-            unsubscribeCart();
+unsubscribeCart();
         };
     };
 
