@@ -1,82 +1,78 @@
 // scripts/pages/HistoryPage.js
 import { fetchSalesHistory } from '../api/historyApi.js';
-import { parseISO, format } from 'date-fns';
 
-export default function HistoryPage() {
-  const wrapper = document.getElementById('pos-page-wrapper');
-  wrapper.innerHTML = `
-    <section class="history-page">
+export async function renderHistoryPage() {
+  const appContent = document.getElementById('app');
+  appContent.innerHTML = `
+    <div class="history-page">
       <h2>ประวัติการขาย</h2>
-      
       <div class="filters">
         <label>จากวันที่: <input type="date" id="start-date"></label>
         <label>ถึงวันที่: <input type="date" id="end-date"></label>
         <button id="filter-btn">ค้นหา</button>
       </div>
-
-      <div class="table-container">
+      <div class="summary-box" id="summary-box"></div>
+      <div class="table-wrapper">
         <table class="history-table">
           <thead>
             <tr>
-              <th>วันเวลา</th>
+              <th>วันที่</th>
+              <th>เวลา</th>
               <th>สินค้า</th>
               <th>จำนวน</th>
+              <th>ชำระ</th>
               <th>ราคา</th>
-              <th>ช่องทางชำระ</th>
               <th>พนักงาน</th>
             </tr>
           </thead>
           <tbody id="history-body">
-            <tr><td colspan="6" style="text-align:center;">กำลังโหลด...</td></tr>
           </tbody>
         </table>
       </div>
-    </section>
+    </div>
   `;
 
-  document.getElementById('filter-btn').addEventListener('click', loadData);
-
-  loadData();
+  document.getElementById('filter-btn').addEventListener('click', loadHistoryData);
+  loadHistoryData(); // โหลดครั้งแรก
 }
 
-async function loadData() {
+async function loadHistoryData() {
   const tbody = document.getElementById('history-body');
-  tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">กำลังโหลดข้อมูล...</td></tr>`;
+  const summaryBox = document.getElementById('summary-box');
+  tbody.innerHTML = '';
+  summaryBox.innerHTML = '';
 
-  const start = document.getElementById('start-date').value;
-  const end = document.getElementById('end-date').value;
+  const startDate = document.getElementById('start-date').value || null;
+  const endDate = document.getElementById('end-date').value || null;
+  const data = await fetchSalesHistory(startDate, endDate);
 
-  try {
-    const sales = await fetchSalesHistory(start, end);
+  let totalCash = 0;
+  let totalTransfer = 0;
 
-    if (!sales || sales.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">ไม่พบข้อมูล</td></tr>`;
-      return;
-    }
+  data.forEach(sale => {
+    const dateObj = new Date(sale.createdatlocal);
+    const date = window.dateFns.format(dateObj, 'dd/MM/yyyy');
+    const time = window.dateFns.format(dateObj, 'HH:mm:ss');
 
-    const rows = sales.map(item => {
-      const dateTime = format(parseISO(item.createdAtLocal), 'dd/MM/yyyy HH:mm:ss');
-      const product = item.productname;
-      const qty = item.qty;
-      const price = parseFloat(item.price).toLocaleString('th-TH', { style: 'currency', currency: 'THB' });
-      const payment = item.paymentType === 'cash' ? 'เงินสด' : 'โอน';
-      const employee = item.employeename;
+    if (sale.paymentType === 'cash') totalCash += parseFloat(sale.price) * sale.qty;
+    else if (sale.paymentType === 'transfer') totalTransfer += parseFloat(sale.price) * sale.qty;
 
-      return `
-        <tr>
-          <td>${dateTime}</td>
-          <td>${product}</td>
-          <td>${qty}</td>
-          <td>${price}</td>
-          <td>${payment}</td>
-          <td>${employee}</td>
-        </tr>
-      `;
-    });
+    const row = `
+      <tr>
+        <td>${date}</td>
+        <td>${time}</td>
+        <td>${sale.productname}</td>
+        <td>${sale.qty}</td>
+        <td>${sale.paymentType === 'cash' ? 'เงินสด' : 'โอน'}</td>
+        <td>${parseFloat(sale.price).toFixed(2)}</td>
+        <td>${sale.employeename}</td>
+      </tr>
+    `;
+    tbody.insertAdjacentHTML('beforeend', row);
+  });
 
-    tbody.innerHTML = rows.join('');
-  } catch (error) {
-    console.error('[HistoryPage] โหลดข้อมูลล้มเหลว:', error);
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">เกิดข้อผิดพลาด</td></tr>`;
-  }
+  summaryBox.innerHTML = `
+    <p><strong>รวมเงินสด:</strong> ${totalCash.toFixed(2)} บาท</p>
+    <p><strong>รวมโอน:</strong> ${totalTransfer.toFixed(2)} บาท</p>
+  `;
 }
