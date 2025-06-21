@@ -1,32 +1,26 @@
 import { userStore } from '../state/userStore.js';
 import { productStore } from '../state/productStore.js';
 import { cartStore } from '../state/cartStore.js';
-import { getProductsWithStock } from '../api/productApi.js';
-import { Modal } from '../components/common/Modal.js';
 import { findOrCreateActiveShift } from '../api/shiftApi.js';
 import { createSaleTransaction } from '../api/salesApi.js';
+import { getProductsWithStock } from '../api/productApi.js';
 import { navigate } from '../router/index.js';
+import { Modal } from '../components/common/Modal.js';
 
 let activeCategory = null;
 let cleanupFunc = null;
 
-// --- Helper: Utility Function ---
-function chunk(arr, size) {
-    const chunks = [];
-    if (!arr) return chunks;
-    for (let i = 0; i < arr.length; i += size) {
-        chunks.push(arr.slice(i, i + size));
-    }
-    return chunks;
-}
+// =================================================================
+// SECTION 1: HELPER FUNCTIONS (ย้ายทั้งหมดมารวมกันไว้ข้างบน)
+// =================================================================
 
-// --- Helper: Render Functions ---
 function renderProductCard(product) {
     const isOutOfStock = product.stock <= 0;
     const imageUrl = product.imageUrl || 'https://placehold.co/300x300/e2e8f0/64748b?text=No+Image';
     const disabledAttribute = isOutOfStock ? 'disabled' : '';
     const priceDisplay = product.price ? `${product.price}` : (product.prices || []).join('/');
-    
+    const lowStockIndicator = (product.stock > 0 && product.stock < 5) ? `<div class="product-card__low-stock">สต็อกใกล้หมด</div>` : '';
+
     return `
         <button class="product-item" data-product-id="${product.id}" ${disabledAttribute}>
             <div class="product-item__image-wrapper">
@@ -91,10 +85,10 @@ function renderSummaryBar() {
     `;
 }
 
-// --- Helper: Modal and Checkout Functions ---
 function openPriceSelectionModal(product) {
     const prices = product.prices || [];
     const contentHtml = `<div class="price-modal"><h3 class="price-modal__title">เลือกราคาสำหรับ "${product.name}"</h3><div class="price-modal__buttons" id="price-options">${prices.map(price => `<button class="price-btn" data-price="${price}">${price} บาท</button>`).join('')}</div></div>`;
+    
     const afterOpen = () => {
         document.getElementById('price-options')?.addEventListener('click', e => {
             const priceButton = e.target.closest('.price-btn');
@@ -108,8 +102,26 @@ function openPriceSelectionModal(product) {
     Modal.open(contentHtml, afterOpen);
 }
 
+function showSuccessAnimation(onComplete) {
+    const animationHtml = `<div class="success-animation"><div class="progress-bar" id="success-progress-bar"></div><span id="success-progress-text">0%</span></div>`;
+    Modal.open(animationHtml, () => {
+        const bar = document.getElementById('success-progress-bar');
+        const text = document.getElementById('success-progress-text');
+        let width = 0;
+        const interval = setInterval(() => {
+            if (width >= 100) {
+                clearInterval(interval);
+                setTimeout(() => { Modal.close(); onComplete(); }, 500);
+            } else {
+                width++;
+                bar.style.width = `${width}%`;
+                text.textContent = `${width}%`;
+            }
+        }, 15);
+    });
+}
+
 async function handleCheckout(paymentType, cashReceived = 0) {
-    Modal.close();
     const currentUser = userStore.getCurrentUser();
     const cart = cartStore.getCart();
     const total = cartStore.getCartTotal();
@@ -118,6 +130,7 @@ async function handleCheckout(paymentType, cashReceived = 0) {
         alert('จำนวนเงินที่รับมาไม่เพียงพอ');
         return;
     }
+
     const shift = await findOrCreateActiveShift({ employeeId: currentUser.id });
     if (!shift) {
         alert('ไม่สามารถหากะการทำงานได้');
@@ -129,9 +142,14 @@ async function handleCheckout(paymentType, cashReceived = 0) {
         employeeId: currentUser.id,
         paymentType: paymentType,
         shopId: currentUser.shopId,
-        cartItems: cart.map(item => ({ productId: item.productId, quantity: item.quantity, price: item.price }))
+        cartItems: cart.map(item => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            price: item.price
+        }))
     };
 
+    Modal.close();
     const { success, error } = await createSaleTransaction(saleData);
     if (success) {
         showSuccessAnimation(async () => {
@@ -147,14 +165,72 @@ async function handleCheckout(paymentType, cashReceived = 0) {
 function openPaymentModal() {
     const total = cartStore.getCartTotal();
     const cart = cartStore.getCart();
-    const contentHtml = `<div class="payment-modal-final">...</div>`; // Assuming full HTML is complex and correct
-    const afterOpen = () => { /* ... */ };
+    const contentHtml = `
+        <div class="payment-modal-final">
+            <div class="payment-modal-header">สรุปรายการ</div>
+            <div class="payment-modal-items">
+                ${cart.map(item => `<div class="payment-modal-item"><span>${item.name} (x${item.quantity})</span><span>${(item.price * item.quantity).toFixed(2)}</span></div>`).join('')}
+            </div>
+            <div class="payment-modal-total">
+                <span>ยอดรวม</span><strong>${total.toFixed(2)} บาท</strong>
+            </div>
+            <div class="payment-method" id="payment-method-selector">
+                <button class="payment-btn" data-method="transfer">โอนชำระ</button>
+                <button class="payment-btn active" data-method="cash">เงินสด</button>
+            </div>
+            <div class="cash-section" id="cash-section">
+                <label for="cash-received">รับเงินมา (บาท):</label>
+                <input type="number" id="cash-received" class="cash-input" placeholder="0.00">
+                <p class="change-display">เงินทอน: <span id="change-amount">0.00</span> บาท</p>
+            </div>
+            <div class="payment-modal__actions">
+                <button class="confirm-btn" id="confirm-payment-btn">ยืนยันการขาย</button>
+            </div>
+        </div>
+    `;
+    const afterOpen = () => {
+        let selectedPayment = 'cash';
+        const cashSection = document.getElementById('cash-section');
+        const cashInput = document.getElementById('cash-received');
+        const changeAmount = document.getElementById('change-amount');
+        
+        document.getElementById('payment-method-selector')?.addEventListener('click', e => {
+            const btn = e.target.closest('.payment-btn');
+            if (!btn) return;
+            document.querySelectorAll('.payment-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedPayment = btn.dataset.method;
+            cashSection.style.display = selectedPayment === 'cash' ? 'block' : 'none';
+        });
+
+        cashInput?.addEventListener('input', () => {
+            const received = parseFloat(cashInput.value) || 0;
+            const change = received - total;
+            changeAmount.textContent = change > 0 ? change.toFixed(2) : '0.00';
+        });
+
+        document.getElementById('confirm-payment-btn')?.addEventListener('click', () => {
+            const cashReceived = parseFloat(cashInput.value) || 0;
+            handleCheckout(selectedPayment, cashReceived);
+        });
+    };
     Modal.open(contentHtml, afterOpen);
 }
 
-function showSuccessAnimation(onComplete) { /* ... */ }
+function chunk(arr, size) {
+    const chunks = [];
+    if (!arr) return chunks;
+    for (let i = 0; i < arr.length; i += size) {
+        chunks.push(arr.slice(i, i + size));
+    }
+    return chunks;
+}
 
-// --- Main Page Component ---
+
+// =================================================================
+// SECTION 2: MAIN PAGE COMPONENT
+// =================================================================
+
 export function PosPage() {
     if (productStore.getProducts().length === 0) {
         setTimeout(async () => {
@@ -176,15 +252,14 @@ export function PosPage() {
     const categoryPillsHtml = categories.map(cat => `<button class="category-pill ${cat === activeCategory ? 'active' : ''}" data-category="${cat}">${cat}</button>`).join('');
 
     const view = `
-        <div class="page-content-wrapper">
+        <div class="page-content-wrapper" id="pos-page-wrapper">
             <header class="pos-page-header">
                 <h1 class="pos-logo">TEXAS</h1>
                 <button id="search-btn" class="header-icon-btn" title="ค้นหา"><i class="bi bi-search"></i></button>
             </header>
             <nav class="category-selector" id="category-selector">${categoryPillsHtml}</nav>
             <main class="pos-main-content">
-                <div class="product-carousel" id="product-carousel">
-                    </div>
+                <div class="product-carousel" id="product-carousel"></div>
             </main>
             <footer class="summary-bar" id="summary-bar"></footer>
         </div>
@@ -193,7 +268,7 @@ export function PosPage() {
     const postRender = () => {
         if (cleanupFunc) cleanupFunc();
         
-        const pageWrapper = document.querySelector('.page-content-wrapper');
+        const pageWrapper = document.getElementById('pos-page-wrapper');
         if (!pageWrapper) return;
 
         const handlePageClick = (event) => {
