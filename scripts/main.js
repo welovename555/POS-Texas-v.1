@@ -1,28 +1,35 @@
-import { userStore } from './state/userStore.js';
-import { AppLayout } from './components/layout/AppLayout.js';
-import { LoginPage } from './pages/LoginPage.js';
-import { router } from './router/index.js';
+// scripts/main.js
+
+import { restoreUserFromLocalStorage } from './state/userStore.js'
+import { AppLayout } from './components/layout/AppLayout.js'
+import { LoginPage } from './pages/LoginPage.js'
+import { router } from './router/index.js'
 
 function main() {
-  const appContainer = document.getElementById('app');
-  const isLoggedIn = userStore.isLoggedIn();
+  const appContainer = document.getElementById('app')
 
-  appContainer.innerHTML = '';
-  appContainer.className = '';
+  // ✅ เรียก restore user ทันทีเมื่อโหลด
+  restoreUserFromLocalStorage()
+
+  const saved = localStorage.getItem('user')
+  const isLoggedIn = !!saved
+
+  appContainer.innerHTML = ''
+  appContainer.className = ''
 
   if (isLoggedIn) {
-    appContainer.classList.add('layout--app');
-    const { view, postRender } = AppLayout();
-    appContainer.innerHTML = view;
-    if (postRender) postRender();
-    
-    router.init();
+    appContainer.classList.add('layout--app')
+    const { view, postRender } = AppLayout()
+    appContainer.innerHTML = view
+    if (postRender) postRender()
+
+    router.init()
   } else {
-    appContainer.classList.add('layout--center');
-    const { view, postRender } = LoginPage();
-    appContainer.innerHTML = view;
-    if (postRender) postRender();
+    appContainer.classList.add('layout--center')
+    const { view, postRender } = LoginPage()
+    appContainer.innerHTML = view
+    if (postRender) postRender()
   }
 }
 
-document.addEventListener('DOMContentLoaded', main);
+document.addEventListener('DOMContentLoaded', main)
