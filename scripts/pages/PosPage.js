@@ -43,14 +43,19 @@ export async function PosPage() {
       <div class="product-item__name">${product.name}</div>
       <div class="product-item__price">${product.price ? product.price + ' บาท' : ''}</div>
     `;
+
     card.addEventListener('click', () => {
-      if (product.prices?.length > 0) {
-        // แสดงตัวเลือกหลายราคา
-        const selected = confirm(`คุณต้องการเพิ่ม "${product.name}"?\nราคาที่มี: ${product.prices.join(', ')}`);
+      console.log('[DEBUG] Clicked product:', product.name, product);
+
+      if (Array.isArray(product.prices) && product.prices.length > 0) {
+        const readablePrices = product.prices.join(', ');
+        const selected = confirm(`คุณต้องการเพิ่ม "${product.name}"?\nราคาที่มี: ${readablePrices}`);
         if (selected) {
-          const chosen = prompt(`ใส่ราคาที่เลือก (${product.prices.join(', ')})`);
-          const price = parseFloat(chosen);
-          if (!isNaN(price) && product.prices.includes(price)) {
+          const chosen = prompt(`ใส่ราคาที่เลือก (${readablePrices})`);
+          const price = Number(chosen);
+
+          const validPrices = product.prices.map(Number);
+          if (!isNaN(price) && validPrices.includes(price)) {
             addToCart(product, price);
           } else {
             alert('กรุณาใส่ราคาที่ถูกต้อง');
@@ -60,6 +65,7 @@ export async function PosPage() {
         addToCart(product, product.price);
       }
     });
+
     productListEl.appendChild(card);
   });
 
