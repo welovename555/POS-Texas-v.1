@@ -147,3 +147,81 @@ html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; font-family:
 .price-btn:hover {
   background-color: var(--color-background);
 }
+
+/* === 5. History Page === */
+.history-page {
+  padding: 1rem 2rem;
+  overflow-y: auto;
+  height: 100%;
+}
+
+.filters {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.filters label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+}
+
+.filters input[type="date"] {
+  padding: 0.5rem;
+  border-radius: 6px;
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+}
+
+.filters button {
+  padding: 0.6rem 1.2rem;
+  background-color: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.filters button:hover {
+  background-color: #0891b2;
+}
+
+.summary-box {
+  margin: 1rem 0;
+  background-color: var(--color-surface);
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.history-table th,
+.history-table td {
+  border: 1px solid var(--color-border);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+.history-table th {
+  background-color: var(--color-surface);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+}
+
+.history-table tbody tr:nth-child(even) {
+  background-color: #1e293b;
+}
