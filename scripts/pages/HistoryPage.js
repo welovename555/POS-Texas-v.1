@@ -1,45 +1,54 @@
 import { getSalesHistoryByDate } from '../api/historyApi.js';
-// navigate ไม่ได้ถูกใช้ในไฟล์นี้ ผมลบออกเพื่อความสะอาด
-// import { navigate } from '../router/index.js';
 
 let isLoading = false;
 
-// --- Helper Functions ---
+// === Helper: แปลงเวลาให้อ่านง่าย (23:34 → 23:34 น.) ===
+function formatThaiTime(isoString) {
+  const date = new Date(isoString);
+  return date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: false }) + ' น.';
+}
 
+// === Helper: Render ตารางประวัติการขาย ===
 function renderHistoryTable(historyData) {
   const tableBody = document.getElementById('history-table-body');
   if (!tableBody) return;
 
-  if (historyData.length === 0) {
+  if (!historyData || historyData.length === 0) {
     tableBody.innerHTML = '<tr><td colspan="5" class="text-center">ไม่พบข้อมูลการขายในวันที่เลือก</td></tr>';
     return;
   }
 
-  const groupedByTransaction = historyData.reduce((acc, sale) => {
-    if (!acc[sale.transactionId]) { acc[sale.transactionId] = []; }
+  // เรียงจากล่าสุด -> เก่าสุด
+  historyData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  const grouped = historyData.reduce((acc, sale) => {
+    if (!acc[sale.transactionId]) acc[sale.transactionId] = [];
     acc[sale.transactionId].push(sale);
     return acc;
   }, {});
 
   let html = '';
-  for (const transactionId in groupedByTransaction) {
-    const salesInTransaction = groupedByTransaction[transactionId];
-    salesInTransaction.forEach((sale, index) => {
-      const transactionClass = index === 0 ? 'transaction-start' : '';
+  for (const transactionId in grouped) {
+    const sales = grouped[transactionId];
+    sales.forEach((sale, idx) => {
+      const timeDisplay = formatThaiTime(sale.createdAt);
+      const rowClass = idx === 0 ? 'transaction-start-row' : '';
       html += `
-        <tr class="${transactionClass}">
-          <td>${sale.time}</td>
+        <tr class="${rowClass}">
+          <td>${timeDisplay}</td>
           <td>${sale.productName}</td>
           <td>${sale.quantity}</td>
-          <td>${sale.paymentType}</td>
+          <td class="payment-type">${sale.paymentType === 'cash' ? 'เงินสด' : 'โอนชำระ'}</td>
           <td>${sale.employeeName}</td>
         </tr>
       `;
     });
   }
+
   tableBody.innerHTML = html;
 }
 
+// === Main: โหลดข้อมูลเมื่อกดค้นหา ===
 async function fetchAndRenderHistory() {
   if (isLoading) return;
 
@@ -49,54 +58,17 @@ async function fetchAndRenderHistory() {
 
   isLoading = true;
   tableBody.innerHTML = '<tr><td colspan="5" class="text-center">กำลังโหลด...</td></tr>';
-  
-  // ▼▼▼▼▼ จุดที่แก้ไข ▼▼▼▼▼
-  // ส่ง dateInput.value ซึ่งเป็น string "YYYY-MM-DD" ไปโดยตรง
-  const historyData = await getSalesHistoryByDate(dateInput.value);
-  // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
-  renderHistoryTable(historyData);
+  try {
+    const historyData = await getSalesHistoryByDate(dateInput.value);
+    renderHistoryTable(historyData);
+  } catch (err) {
+    console.error('[ERROR] Fetching history failed:', err);
+    tableBody.innerHTML = '<tr><td colspan="5" class="text-center error">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>';
+  }
+
   isLoading = false;
 }
 
-// --- Main Page Component ---
-export function HistoryPage() {
-  const today = new Date().toLocaleDateString('en-CA'); // ใช้ 'en-CA' เพื่อให้ได้ format "YYYY-MM-DD"
-
-  const view = `
-    <div class="page-container">
-      <header class="page-header">
-        <h1>ประวัติการขาย</h1>
-      </header>
-      <main class="main-content">
-        <div class="history-controls">
-          <label for="history-date-picker">เลือกวันที่:</label>
-          <input type="date" id="history-date-picker" value="${today}">
-          <button id="fetch-history-btn" class="btn-primary">ค้นหา</button>
-        </div>
-        <div class="history-table-container">
-          <table class="history-table">
-            <thead>
-              <tr>
-                <th>เวลา</th>
-                <th>สินค้า</th>
-                <th>จำนวน</th>
-                <th>การชำระเงิน</th>
-                <th>พนักงานขาย</th>
-              </tr>
-            </thead>
-            <tbody id="history-table-body"></tbody>
-          </table>
-        </div>
-      </main>
-    </div>
-  `;
-
-  const postRender = () => {
-    const fetchBtn = document.getElementById('fetch-history-btn');
-    fetchBtn?.addEventListener('click', fetchAndRenderHistory);
-    fetchAndRenderHistory();
-  };
-
-  return { view, postRender };
-}
+// === Event Listener ===
+document.getElementById('history-search-btn')?.addEventListener('click', fetchAndRenderHistory);
