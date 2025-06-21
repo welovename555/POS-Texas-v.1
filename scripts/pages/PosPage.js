@@ -101,6 +101,8 @@ function renderSummaryBar() {
 }
 
 function openPriceSelectionModal(product) {
+  console.log('[DEBUG] openPriceSelectionModal CALLED', product);
+
   const prices = product.prices || [];
   const contentHtml = `
     <div class="price-modal">
@@ -115,18 +117,25 @@ function openPriceSelectionModal(product) {
       </div>
     </div>
   `;
+
   const afterOpen = () => {
-    document
-      .getElementById('price-options')
-      ?.addEventListener('click', (e) => {
-        const priceButton = e.target.closest('.price-btn');
-        if (priceButton) {
-          const selectedPrice = parseFloat(priceButton.dataset.price);
-          cartStore.addItem(product, selectedPrice);
-          Modal.close();
-        }
-      });
+    console.log('[DEBUG] afterOpen in price modal triggered');
+    const optionsEl = document.getElementById('price-options');
+    console.log('[DEBUG] price-options element =', optionsEl);
+
+    optionsEl?.addEventListener('click', (e) => {
+      const priceButton = e.target.closest('.price-btn');
+      console.log('[DEBUG] clicked price button =', priceButton);
+      if (priceButton) {
+        const selectedPrice = parseFloat(priceButton.dataset.price);
+        console.log('[DEBUG] Selected price:', selectedPrice);
+        cartStore.addItem(product, selectedPrice);
+        Modal.close();
+      }
+    });
   };
+
+  console.log('[DEBUG] Modal.open will be called now');
   Modal.open(contentHtml, afterOpen);
 }
 
@@ -339,6 +348,7 @@ export function PosPage() {
       if (productCard && !productCard.disabled) {
         const productId = productCard.dataset.productId;
         const product = productStore.getProductById(productId);
+        console.log('[DEBUG] Clicked productCard → product:', product);
         if (product) {
           const hasMultiplePrices =
             product.prices && product.prices.length > 0;
@@ -352,6 +362,7 @@ export function PosPage() {
       }
 
       if (e.target.closest('#checkout-btn')) {
+        console.log('[DEBUG] Checkout button clicked');
         openPaymentModal();
       }
     };
