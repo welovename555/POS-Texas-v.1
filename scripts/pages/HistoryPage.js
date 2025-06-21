@@ -1,74 +1,100 @@
-import { getSalesHistoryByDate } from '../api/historyApi.js';
+// scripts/pages/HistoryPage.js
 
-let isLoading = false;
+import { userStore } from '../state/userStore.js';
+import { fetchSalesHistory } from '../api/historyApi.js';
+import { format } from 'date-fns';
+import { th } from 'date-fns/locale';
 
-// === Helper: แปลงเวลาให้อ่านง่าย (23:34 → 23:34 น.) ===
-function formatThaiTime(isoString) {
-  const date = new Date(isoString);
-  return date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: false }) + ' น.';
-}
+export function HistoryPage() {
+  const today = new Date();
+  const todayStr = format(today, 'yyyy-MM-dd');
 
-// === Helper: Render ตารางประวัติการขาย ===
-function renderHistoryTable(historyData) {
-  const tableBody = document.getElementById('history-table-body');
-  if (!tableBody) return;
+  const view = `
+    <div class="page-content-wrapper history-page">
+      <h1 class="page-title">ประวัติการขาย</h1>
+      <div class="history-date-selector">
+        <label for="history-date">เลือกวันที่:</label>
+        <input type="date" id="history-date" value="${todayStr}" />
+        <button id="fetch-history-btn">ค้นหา</button>
+      </div>
+      <div class="history-table-container" id="history-table-container">
+        <p>กรุณาเลือกวันที่เพื่อดูรายการขาย</p>
+      </div>
+    </div>
+  `;
 
-  if (!historyData || historyData.length === 0) {
-    tableBody.innerHTML = '<tr><td colspan="5" class="text-center">ไม่พบข้อมูลการขายในวันที่เลือก</td></tr>';
-    return;
-  }
+  const postRender = () => {
+    document.getElementById('fetch-history-btn')?.addEventListener('click', async () => {
+      const date = document.getElementById('history-date').value;
+      const currentUser = userStore.getCurrentUser();
+      if (!currentUser || !date) return;
 
-  // เรียงจากล่าสุด -> เก่าสุด
-  historyData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      const { data: sales } = await fetchSalesHistory(date, currentUser.shopId);
 
-  const grouped = historyData.reduce((acc, sale) => {
-    if (!acc[sale.transactionId]) acc[sale.transactionId] = [];
-    acc[sale.transactionId].push(sale);
-    return acc;
-  }, {});
+      const tableContainer = document.getElementById('history-table-container');
 
-  let html = '';
-  for (const transactionId in grouped) {
-    const sales = grouped[transactionId];
-    sales.forEach((sale, idx) => {
-      const timeDisplay = formatThaiTime(sale.createdAt);
-      const rowClass = idx === 0 ? 'transaction-start-row' : '';
-      html += `
-        <tr class="${rowClass}">
-          <td>${timeDisplay}</td>
-          <td>${sale.productName}</td>
-          <td>${sale.quantity}</td>
-          <td class="payment-type">${sale.paymentType === 'cash' ? 'เงินสด' : 'โอนชำระ'}</td>
-          <td>${sale.employeeName}</td>
-        </tr>
+      if (!sales || sales.length === 0) {
+        tableContainer.innerHTML = `<p>ไม่พบรายการขายในวันที่เลือก</p>`;
+        return;
+      }
+
+      // Group by transactionId
+      const grouped = {};
+      sales.forEach((sale) => {
+        if (!grouped[sale.transactionId]) {
+          grouped[sale.transactionId] = {
+            time: format(new Date(sale.createdAt), 'HH:mm'),
+            employee: sale.employeeId,
+            paymentType: sale.paymentType,
+            items: [],
+          };
+        }
+        grouped[sale.transactionId].items.push({
+          name: sale.product.name,
+          qty: sale.qty,
+        });
+      });
+
+      // Convert and sort
+      const sortedSales = Object.entries(grouped)
+        .sort((a, b) => new Date(b[1].time) - new Date(a[1].time));
+
+      const html = `
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th>เวลา</th>
+              <th>สินค้า</th>
+              <th>จำนวน</th>
+              <th>การชำระเงิน</th>
+              <th>พนักงานขาย</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${sortedSales
+              .map(
+                ([_, tx]) =>
+                  tx.items
+                    .map(
+                      (item, index) => `
+                  <tr>
+                    ${index === 0 ? `<td rowspan="${tx.items.length}">${tx.time}</td>` : ''}
+                    <td>${item.name}</td>
+                    <td>${item.qty}</td>
+                    ${index === 0 ? `<td rowspan="${tx.items.length}">${tx.paymentType}</td>` : ''}
+                    ${index === 0 ? `<td rowspan="${tx.items.length}">${tx.employee}</td>` : ''}
+                  </tr>`
+                    )
+                    .join('')
+              )
+              .join('')}
+          </tbody>
+        </table>
       `;
+
+      tableContainer.innerHTML = html;
     });
-  }
+  };
 
-  tableBody.innerHTML = html;
+  return { view, postRender };
 }
-
-// === Main: โหลดข้อมูลเมื่อกดค้นหา ===
-async function fetchAndRenderHistory() {
-  if (isLoading) return;
-
-  const dateInput = document.getElementById('history-date-picker');
-  const tableBody = document.getElementById('history-table-body');
-  if (!dateInput || !tableBody) return;
-
-  isLoading = true;
-  tableBody.innerHTML = '<tr><td colspan="5" class="text-center">กำลังโหลด...</td></tr>';
-
-  try {
-    const historyData = await getSalesHistoryByDate(dateInput.value);
-    renderHistoryTable(historyData);
-  } catch (err) {
-    console.error('[ERROR] Fetching history failed:', err);
-    tableBody.innerHTML = '<tr><td colspan="5" class="text-center error">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>';
-  }
-
-  isLoading = false;
-}
-
-// === Event Listener ===
-document.getElementById('history-search-btn')?.addEventListener('click', fetchAndRenderHistory);
