@@ -1,85 +1,102 @@
-/* === 5. POS Page (Carousel Design) === */
+@import './_reset.css';
 
-.page-content-wrapper { 
-  display: flex; 
-  flex-direction: column; 
-  height: 100%; 
-  width: 100%; 
+/* === 1. Design System (CSS Variables) === */
+:root {
+  --font-main: 'Inter', sans-serif;
+  --color-background: #111827;
+  --color-surface: #1f2937;
+  --color-border: #374151;
+  --color-text-primary: #f9fafb;
+  --color-text-secondary: #9ca3af;
+  --color-primary: #06b6d4;
+  --color-primary-hover: #0891b2;
+  --color-success: #22c55e;
+  --color-error: #ef4444;
+  --color-warning: #f59e0b;
+}
+
+/* === 2. Global & Body Styles === */
+html, body, #app {
+  height: 100%;
+  margin: 0;
+  padding: 0;
   overflow: hidden;
 }
 
-.pos-page-header { 
-  flex-shrink: 0; 
-  display: flex; 
-  justify-content: space-between; 
-  align-items: center; 
-  padding: 0.75rem 1.5rem; 
-  background-color: var(--color-surface); 
-  border-bottom: 1px solid var(--color-border); 
-}
-.pos-logo { font-size: 1.5rem; font-weight: 800; }
-.header-icon-btn { font-size: 1.5rem; background: none; border: none; cursor: pointer; color: var(--color-text-secondary); }
-
-.category-selector { 
-  flex-shrink: 0; 
-  display: flex; 
-  gap: 0.75rem; 
-  padding: 1rem 1.5rem; 
-  background-color: var(--color-background); 
-  border-bottom: 1px solid var(--color-border); 
-  overflow-x: auto; 
-}
-.category-pill { padding: 0.5rem 1rem; border-radius: 9999px; border: 1px solid var(--color-border); background-color: var(--color-surface); font-weight: 500; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap; }
-.category-pill.active { background-color: var(--color-primary); color: #ffffff; border-color: var(--color-primary); }
-
-/* ส่วนแสดงผลหลัก จะเป็น Flex container สำหรับ product carousel */
-.pos-main-content {
-  flex-grow: 1;
-  overflow: hidden; /* ซ่อน scrollbar ของ container นี้ */
+body {
+  font-family: var(--font-main);
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
 }
 
-/* ตัว Carousel ที่จะเลื่อนได้ */
-.product-carousel {
-  display: flex;
+.loading-spinner {
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-left-color: var(--color-primary);
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin: auto;
+}
+
+/* === 3. App Layout & Sidebar === */
+.app-layout { display: flex; height: 100%; }
+.main-content { flex-grow: 1; height: 100%; display: flex; flex-direction: column; }
+.sidebar { width: 80px; background-color: var(--color-surface); color: var(--color-text-secondary); display: flex; flex-direction: column; padding: 1rem 0.5rem; flex-shrink: 0; align-items: center; border-right: 1px solid var(--color-border); }
+.sidebar__profile { margin-bottom: 1.5rem; }
+.profile-avatar { width: 48px; height: 48px; border-radius: 50%; background-color: var(--color-primary); color: var(--color-surface); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.5rem; }
+.sidebar__menu { display: flex; flex-direction: column; gap: 0.75rem; width: 100%; }
+.sidebar__link { display: flex; align-items: center; justify-content: center; padding: 0.75rem; border-radius: 8px; text-decoration: none; color: var(--color-text-secondary); transition: background-color 0.2s, color 0.2s; cursor: pointer; }
+.sidebar__link:hover { background-color: rgba(255, 255, 255, 0.1); color: var(--color-text-primary); }
+.sidebar__link.active { background-color: var(--color-primary); color: #ffffff; }
+.sidebar__link i { font-size: 1.75rem; line-height: 1; }
+.sidebar__footer { margin-top: auto; }
+.sidebar__link--logout { width: 100%; background: none; border: none; font-size: 1rem; }
+
+/* === 4. Login Page === */
+#app > .login-page__form {
+  margin: auto;
+  display: flex; /* เพิ่ม display flex เพื่อให้ทำงานร่วมกับ body/app ที่สูง 100% */
+  justify-content: center;
+  align-items: center;
+}
+.login-page__form {
   width: 100%;
-  height: 100%;
-  overflow-x: auto;
-  /* --- หัวใจของการเลื่อนแบบ Snap --- */
-  scroll-snap-type: x mandatory; /* บังคับให้ snap ในแกน x */
-  scroll-behavior: smooth; /* ทำให้การเลื่อนสมูท */
-  /* --- ซ่อน scrollbar ให้ดูเหมือนแอป --- */
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
-}
-.product-carousel::-webkit-scrollbar {
-  display: none; /* Safari and Chrome */
-}
-
-/* แต่ละหน้าของสินค้า */
-.product-page {
-  flex: 0 0 100%; /* <-- ทำให้แต่ละหน้ากว้าง 100% พอดี */
-  scroll-snap-align: start; /*-- บอกให้ snap ที่จุดเริ่มต้นของแต่ละหน้า --*/
-  display: grid;
-  grid-template-columns: repeat(2, 1fr); /* 2 คอลัมน์ */
-  grid-template-rows: repeat(2, 1fr);    /* 2 แถว */
-  gap: 1rem; /* <-- ปรับช่องว่างระหว่างการ์ดสินค้าได้ที่นี่ */
-  padding: 1.5rem;
-  height: 100%;
-}
-
-/* การ์ดสินค้า (เปลี่ยนชื่อ class เล็กน้อย) */
-.product-item {
-  all: unset;
-  box-sizing: border-box;
-  border-radius: 12px; /* <-- ปรับความมนของการ์ด */
+  max-width: 360px;
+  padding: 2rem;
+  border-radius: 16px;
   background-color: var(--color-surface);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-  cursor: pointer;
+  border: 1px solid var(--color-border);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  text-align: center;
   display: flex;
   flex-direction: column;
-  transition: transform 0.2s;
-  overflow: hidden;
+  gap: 1.5rem;
 }
+.login-page__title { font-size: 2.25rem; font-weight: 800; color: var(--color-primary); letter-spacing: -1px; }
+.login-page__subtitle { font-size: 1rem; color: var(--color-text-secondary); margin-top: -1.25rem; }
+.pin-display__input { width: 100%; padding: 0.75rem; font-size: 2.5rem; text-align: center; letter-spacing: 0.5em; border: 2px solid var(--color-border); border-radius: 8px; background-color: var(--color-background); color: var(--color-text-primary); transition: border-color 0.2s; }
+.pin-display__input:focus { outline: none; border-color: var(--color-primary); }
+.login-page__error { color: var(--color-error); font-weight: 500; height: 1.25rem; margin: -0.75rem 0; }
+.login-page__numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+.numpad__button { padding: 1rem 0; font-size: 1.75rem; font-weight: 500; border-radius: 50%; border: none; background-color: rgba(255, 255, 255, 0.05); color: var(--color-text-secondary); cursor: pointer; transition: background-color 0.2s, transform 0.1s; }
+.numpad__button:hover { background-color: rgba(255, 255, 255, 0.1); }
+.numpad__button:active { transform: scale(0.92); background-color: rgba(6, 182, 212, 0.2); }
+
+
+/* === 5. POS Page (Carousel Design) === */
+.page-content-wrapper { display: flex; flex-direction: column; height: 100%; width: 100%; overflow: hidden; }
+.pos-page-header { flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1.5rem; background-color: var(--color-surface); border-bottom: 1px solid var(--color-border); }
+.pos-logo { font-size: 1.5rem; font-weight: 800; }
+.header-icon-btn { font-size: 1.5rem; background: none; border: none; cursor: pointer; color: var(--color-text-secondary); }
+.category-selector { flex-shrink: 0; display: flex; gap: 0.75rem; padding: 1rem 1.5rem; background-color: var(--color-background); border-bottom: 1px solid var(--color-border); overflow-x: auto; }
+.category-pill { padding: 0.5rem 1rem; border-radius: 9999px; border: 1px solid var(--color-border); background-color: var(--color-surface); font-weight: 500; color: var(--color-text-secondary); cursor: pointer; white-space: nowrap; }
+.category-pill.active { background-color: var(--color-primary); color: #ffffff; border-color: var(--color-primary); }
+.pos-main-content { flex-grow: 1; overflow: hidden; /* ซ่อน scrollbar ของ container นี้ */ }
+.product-carousel { display: flex; width: 100%; height: 100%; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; -ms-overflow-style: none; scrollbar-width: none; }
+.product-carousel::-webkit-scrollbar { display: none; }
+.product-page { flex: 0 0 100%; scroll-snap-align: start; display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr); gap: 1rem; padding: 1.5rem; height: 100%; }
+.product-item { all: unset; box-sizing: border-box; border-radius: 12px; background-color: var(--color-surface); box-shadow: 0 2px 8px rgba(0,0,0,0.2); cursor: pointer; display: flex; flex-direction: column; transition: transform 0.2s; overflow: hidden; }
 .product-item:active { transform: scale(0.96); }
 .product-item:disabled { opacity: 0.4; cursor: not-allowed; }
 .product-item__image-wrapper { aspect-ratio: 1 / 1; }
@@ -90,21 +107,12 @@
 .product-item__price { color: var(--color-primary); font-weight: 700; font-size: 1rem; }
 .product-item__stock { font-size: 0.75rem; color: var(--color-text-secondary); background-color: rgba(0,0,0,0.2); padding: 0.1rem 0.4rem; border-radius: 4px; }
 .no-products-message { margin: auto; color: var(--color-text-secondary); }
-
-
-/* แถบสรุปยอดด้านล่าง (ปรับแก้ให้เข้ากับ Layout ใหม่) */
-.summary-bar {
-  flex-shrink: 0;
-  height: 8vh; /* <-- ปรับความสูงของแถบได้ที่นี่ (8vh = 8% ของความสูงหน้าจอ) */
-  min-height: 65px;
-  background-color: var(--color-surface);
-  border-top: 1px solid var(--color-border);
-  box-shadow: 0 -4px 10px rgba(0,0,0,0.3);
-  padding: 0 1rem 0 1.5rem;
-  display: none;
-}
+.summary-bar { flex-shrink: 0; height: 8vh; min-height: 65px; background-color: var(--color-surface); border-top: 1px solid var(--color-border); box-shadow: 0 -4px 10px rgba(0,0,0,0.3); padding: 0 1rem 0 1.5rem; display: none; }
 .summary-bar.visible { display: flex; justify-content: space-between; align-items: center; }
 .summary-text { text-align: left; }
 .summary-text span { font-size: 0.8rem; color: var(--color-text-secondary); }
 .summary-text strong { font-size: 1.25rem; font-weight: 700; }
-.checkout-button-main { padding: 0.75rem 1.25rem; font-size: 0.9rem; /* <-- ลดขนาดปุ่มและฟอนต์ */ }
+.checkout-button-main { padding: 0.75rem 1.25rem; font-size: 0.9rem; }
+
+/* === 6. Reusable Components & Animations === */
+/* ... (Modal, Shake, etc. styles) ... */
