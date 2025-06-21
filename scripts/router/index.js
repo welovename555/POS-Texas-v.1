@@ -5,7 +5,8 @@ import { PosPage } from '../pages/PosPage.js';
 import { AdminPage } from '../pages/AdminPage.js';
 import { HistoryPage } from '../pages/HistoryPage.js';
 
-const contentContainer = document.getElementById('main-content');
+// เราจะไม่หา contentContainer ที่นี่อีกต่อไป
+// const contentContainer = document.getElementById('main-content');
 
 const routes = {
   '/pos': PosPage,
@@ -28,7 +29,14 @@ async function routeLoader(path) {
 }
 
 async function renderPage(path) {
-  if (!contentContainer) return;
+  // ▼▼▼▼▼ จุดที่แก้ไขสำคัญที่สุด ▼▼▼▼▼
+  // ย้ายการค้นหา contentContainer มาไว้ในนี้
+  const contentContainer = document.getElementById('main-content');
+  if (!contentContainer) {
+    console.error('Router Error: #main-content container not found in DOM.');
+    return; 
+  }
+  // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
   const user = userStore.getCurrentUser();
   const isAdminRoute = adminOnlyRoutes.includes(path);
@@ -47,7 +55,7 @@ async function renderPage(path) {
   const { view, postRender } = pageComponent();
   contentContainer.innerHTML = view;
   if (typeof postRender === 'function') {
-    postRender();
+    setTimeout(postRender, 0); // หน่วงเวลา postRender เล็กน้อยเพื่อความเสถียร
   }
 }
 
@@ -60,6 +68,9 @@ export const router = {
   init() {
     const handleRouteChange = () => renderPage(window.location.hash.slice(1) || '/pos');
     window.addEventListener('hashchange', handleRouteChange);
+    
+    // เราจะเรียกใช้ handleRouteChange โดยตรงหลังจาก main.js สร้าง Layout เสร็จ
+    // เพื่อให้แน่ใจว่า #main-content มีอยู่แล้ว
     handleRouteChange();
   },
 };
