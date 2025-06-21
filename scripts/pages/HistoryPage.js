@@ -1,7 +1,7 @@
 // scripts/pages/HistoryPage.js
 import { fetchSalesHistory } from '../api/historyApi.js';
 
-export async function renderHistoryPage() {
+export async function HistoryPage() {
   const appContent = document.getElementById('app');
   appContent.innerHTML = `
     <div class="history-page">
