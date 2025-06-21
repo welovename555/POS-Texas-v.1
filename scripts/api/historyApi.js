@@ -1,19 +1,25 @@
 // scripts/api/historyApi.js
 import { supabase } from '../lib/supabaseClient.js';
-import { userStore } from '../state/userStore.js';
 
 export async function fetchSalesHistory(startDate, endDate) {
-  const user = userStore.getCurrentUser();
+  const { user } = JSON.parse(localStorage.getItem('user')) || {};
+  const shopId = user?.shopId;
 
   let query = supabase
     .from('sales_with_localtime')
     .select('*')
-    .eq('shopId', user.shopId);
+    .eq('shopId', shopId)
+    .order('createdatlocal', { ascending: true });
 
-  if (startDate) query = query.gte('createdAtLocal', startDate);
-  if (endDate) query = query.lte('createdAtLocal', endDate);
+  if (startDate) {
+    query = query.gte('createdatlocal', `${startDate}T00:00:00`);
+  }
 
-  const { data, error } = await query.order('createdAtLocal', { ascending: true });
+  if (endDate) {
+    query = query.lte('createdatlocal', `${endDate}T23:59:59`);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.error('[fetchSalesHistory] Error:', error);
