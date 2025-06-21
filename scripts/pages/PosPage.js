@@ -54,6 +54,7 @@ function renderFilteredProducts() {
 function renderSummaryBar() {
     const summaryBar = document.getElementById('summary-bar');
     if (!summaryBar) return;
+
     const total = cartStore.getCartTotal();
     const itemCount = cartStore.getCartItemCount();
 
@@ -62,7 +63,13 @@ function renderSummaryBar() {
         return;
     }
     summaryBar.classList.add('visible');
-    summaryBar.innerHTML = `<div class="summary-text" id="summary-bar-text"><span>${itemCount} รายการ</span><strong>รวม ${total.toFixed(2)} บาท</strong></div><button class="checkout-button-main" id="checkout-btn">ชำระเงิน</button>`;
+    summaryBar.innerHTML = `
+        <div class="summary-text" id="summary-bar-text">
+            <span>${itemCount} รายการ</span>
+            <strong>รวม ${total.toFixed(2)} บาท</strong>
+        </div>
+        <button class="checkout-button-main" id="checkout-btn">ชำระเงิน</button>
+    `;
 }
 
 function openPriceSelectionModal(product) {
@@ -166,8 +173,7 @@ function openPaymentModal() {
             <div class="payment-modal__actions">
                 <button class="confirm-btn" id="confirm-payment-btn">ยืนยันการขาย</button>
             </div>
-        </div>
-    `;
+        </div>`;
     const afterOpen = () => {
         let selectedPayment = 'cash';
         const cashSection = document.getElementById('cash-section');
@@ -228,7 +234,10 @@ export function PosPage() {
                 <button id="search-btn" class="header-icon-btn" title="ค้นหา"><i class="bi bi-search"></i></button>
             </header>
             <nav class="category-selector" id="category-selector">${categoryPillsHtml}</nav>
-            <main class="product-grid-container" id="product-list-area"></main>
+            <main class="pos-main-content">
+                <div id="product-list-area">
+                    </div>
+            </main>
             <footer class="summary-bar" id="summary-bar"></footer>
         </div>
     `;
@@ -240,7 +249,6 @@ export function PosPage() {
         if (!pageWrapper) return;
 
         const handlePageClick = (event) => {
-            // Product click
             const productCard = event.target.closest('.pos-product-card');
             if (productCard && !productCard.disabled) {
                 const productId = productCard.dataset.productId;
@@ -252,16 +260,12 @@ export function PosPage() {
                 }
                 return;
             }
-
-            // Category pill click
             const categoryPill = event.target.closest('.category-pill');
             if (categoryPill) {
                 activeCategory = categoryPill.dataset.category;
                 renderFilteredProducts();
                 return;
             }
-
-            // Checkout button click
             if (event.target.closest('#checkout-btn')) {
                 openPaymentModal();
             }
