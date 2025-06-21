@@ -1,32 +1,35 @@
 // scripts/state/userStore.js
 
-let user = null;
+let currentUser = null
 
-export function setUser(userData) {
-  user = userData;
-  localStorage.setItem('user', JSON.stringify(userData));
-  console.log('[userStore] Set user:', userData);
+export function restoreUserFromLocalStorage() {
+  const saved = localStorage.getItem('user')
+  if (saved) {
+    try {
+      currentUser = JSON.parse(saved)
+      console.log('[userStore.js] Restored user session from localStorage:', currentUser)
+    } catch (e) {
+      console.error('[userStore.js] Failed to parse user from localStorage:', e)
+      currentUser = null
+    }
+  } else {
+    console.warn('[userStore.js] No user in localStorage')
+    currentUser = null
+  }
+}
+
+export function saveUserToLocalStorage(user) {
+  currentUser = user
+  localStorage.setItem('user', JSON.stringify(user))
+  console.log('[userStore.js] Saved user to localStorage:', user)
 }
 
 export function getUser() {
-  if (!user) {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      try {
-        user = JSON.parse(storedUser);
-        console.log('[userStore] Restored user session from localStorage:', user);
-      } catch (e) {
-        console.error('[userStore] Failed to parse stored user:', e);
-      }
-    } else {
-      console.warn('[userStore] No user in localStorage');
-    }
-  }
-  return user;
+  return currentUser
 }
 
 export function clearUser() {
-  user = null;
-  localStorage.removeItem('user');
-  console.log('[userStore] Cleared user');
+  currentUser = null
+  localStorage.removeItem('user')
+  console.log('[userStore.js] Cleared user from localStorage')
 }
