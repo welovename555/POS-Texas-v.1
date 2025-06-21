@@ -1,26 +1,25 @@
+// scripts/api/saleApi.js
+
 import { supabase } from '../lib/supabaseClient.js';
 
-export async function createSaleTransaction(saleData) {
-  console.log('Sending sale data to RPC:', saleData);
+export async function handleSale({ shiftId, employeeId, shopId, paymentType, cartItems }) {
+  try {
+    const { data, error } = await supabase.rpc('handle_new_sale', {
+      p_shift_id: shiftId,
+      p_employee_id: employeeId,
+      p_payment_type: paymentType,
+      p_cart_items: cartItems,
+      p_shop_id: shopId,
+    });
 
-  const payload = {
-    p_shift_id: saleData.shiftId,
-    p_employee_id: saleData.employeeId,
-    p_payment_type: saleData.paymentType,
-    p_shop_id: saleData.shopId,
-    // ▼▼▼▼▼ จุดที่แก้ไข ▼▼▼▼▼
-    // นำ JSON.stringify() ออก และส่งเป็น cartItems ตรงๆ
-    p_cart_items: saleData.cartItems,
-    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
-  };
+    if (error) {
+      console.error('[handleSale] Supabase error:', error);
+      return { success: false, error };
+    }
 
-  const { data, error } = await supabase.rpc('handle_new_sale', payload);
-
-  if (error) {
-    console.error('Error calling handle_new_sale RPC:', error);
-    return { success: false, transactionId: null, error: error };
+    return { success: true, data };
+  } catch (err) {
+    console.error('[handleSale] Unexpected error:', err);
+    return { success: false, error: err };
   }
-
-  console.log('RPC handle_new_sale successful, transaction ID:', data);
-  return { success: true, transactionId: data, error: null };
 }
