@@ -7,14 +7,21 @@ function main() {
   const appContainer = document.getElementById('app');
   const isLoggedIn = userStore.isLoggedIn();
 
+  // ล้างเนื้อหาและ class เก่าทิ้งก่อน
+  appContainer.innerHTML = '';
+  appContainer.className = '';
+
   if (isLoggedIn) {
+    // ถ้าล็อกอินอยู่: ใช้ Layout หลักของแอป
+    appContainer.classList.add('layout--app');
     const { view, postRender } = AppLayout();
     appContainer.innerHTML = view;
     if (postRender) postRender();
     
-    // เรียกใช้ init ของ router
-    router.init();
+    router.init(); // สั่งให้ router จัดการเนื้อหาข้างใน
   } else {
+    // ถ้ายังไม่ล็อกอิน: ใช้ Layout แบบจัดกลางสำหรับหน้า Login
+    appContainer.classList.add('layout--center');
     const { view, postRender } = LoginPage();
     appContainer.innerHTML = view;
     if (postRender) postRender();
