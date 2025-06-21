@@ -2,8 +2,20 @@
 import { supabase } from '../lib/supabaseClient.js';
 
 export async function fetchSalesHistory(startDate, endDate) {
-  const { user } = JSON.parse(localStorage.getItem('user')) || {};
-  const shopId = user?.shopId;
+  let userData = null;
+
+  try {
+    userData = JSON.parse(localStorage.getItem('user'));
+  } catch (err) {
+    console.error('[fetchSalesHistory] Failed to parse user:', err);
+  }
+
+  const shopId = userData?.shopId;
+
+  if (!shopId) {
+    console.warn('[fetchSalesHistory] shopId is undefined. Abort fetching history.');
+    return [];
+  }
 
   let query = supabase
     .from('sales_with_localtime')
