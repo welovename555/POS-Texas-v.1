@@ -33,7 +33,6 @@ export const Modal = {
    * @param {function} afterOpenCallback - ฟังก์ชันที่จะรันหลังจาก Modal เปิดแล้ว (สำหรับ add event listener)
    */
   open(contentHtml, afterOpenCallback) {
-    // ป้องกันการเปิดซ้อน
     if (document.getElementById(MODAL_ID)) {
       return;
     }
@@ -42,14 +41,12 @@ export const Modal = {
     document.body.insertAdjacentHTML('beforeend', modalStructure);
     document.body.classList.add('modal-open');
 
-    // เพิ่ม Event Listeners สำหรับการปิด
     const closeBtn = document.getElementById('modal-close-btn');
     const overlay = document.getElementById(OVERLAY_ID);
-    
+
     closeBtn.addEventListener('click', closeModal);
     overlay.addEventListener('click', closeModal);
 
-    // เรียกใช้ Callback หลังจาก render เสร็จ
     if (typeof afterOpenCallback === 'function') {
       afterOpenCallback();
     }
@@ -58,7 +55,5 @@ export const Modal = {
   /**
    * ปิด Modal ที่เปิดอยู่
    */
-  close() {
-    closeModal();
-  }
+  close: closeModal
 };
