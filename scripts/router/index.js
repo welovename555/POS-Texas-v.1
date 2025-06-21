@@ -2,65 +2,41 @@ import { userStore } from '../state/userStore.js';
 import { PosPage } from '../pages/PosPage.js';
 import { AdminPage } from '../pages/AdminPage.js';
 import { HistoryPage } from '../pages/HistoryPage.js';
-import { getProductsWithStock } from '../api/productApi.js';
-import { productStore } from '../state/productStore.js';
-
-const contentContainer = document.getElementById('main-content');
 
 const routes = {
   '/pos': PosPage,
   '/admin': AdminPage,
   '/history': HistoryPage,
-  // สำหรับเมนูที่ยังไม่มีหน้า เราจะแสดงข้อความบอกผู้ใช้
-  '/add-stock': () => ({ view: '<h1>Coming Soon: Add Stock</h1>' }),
-  '/close-shift': () => ({ view: '<h1>Coming Soon: Close Shift</h1>' }),
+  '/add-stock': () => ({ view: '<h1>Add Stock Page (Coming Soon)</h1>' }),
+  '/close-shift': () => ({ view: '<h1>Close Shift Page (Coming Soon)</h1>' }),
 };
 
-async function routeLoader(path) {
-  const currentUser = userStore.getCurrentUser();
-  if (!currentUser) return;
-  if (path === '/pos' && productStore.getProducts().length === 0) {
-    const products = await getProductsWithStock(currentUser.shopId);
-    productStore.setProducts(products);
-  }
-}
+const adminOnlyRoutes = ['/admin'];
 
 function renderPage(path) {
   const contentContainer = document.getElementById('main-content');
-  if (!contentContainer) { return; }
+  if (!contentContainer) return;
 
+  const user = userStore.getCurrentUser();
+  const isAdminRoute = adminOnlyRoutes.includes(path);
+
+  // --- Route Protection ---
+  if (isAdminRoute && user.role !== 'admin') {
+    return navigate('/pos'); // ถ้าไม่ใช่ admin ให้เด้งกลับ
+  }
+
+  // --- Update Active Menu ---
   document.querySelectorAll('.sidebar__link').forEach(link => {
     link.classList.toggle('active', link.dataset.path === path);
   });
   
+  // --- Render Page ---
   const pageComponent = routes[path] || routes['/pos'];
   const { view, postRender } = pageComponent();
   contentContainer.innerHTML = view;
   if (typeof postRender === 'function') {
     postRender();
   }
-}
-
-async function handleRouteChange() {
-  const isLoggedIn = userStore.isLoggedIn();
-  const path = window.location.hash.slice(1) || (isLoggedIn ? '/pos' : '/login');
-
-  if (!isLoggedIn && path !== '/login') {
-    navigate('/login');
-    window.location.reload(); // บังคับให้ไปหน้า login จริงๆ
-    return;
-  }
-  
-  const isAdminRoute = ['/admin'].includes(path);
-  if (isLoggedIn && isAdminRoute && userStore.getCurrentUser().role !== 'admin') {
-    navigate('/pos');
-    return;
-  }
-
-  // โหลดข้อมูลที่จำเป็นสำหรับหน้านั้นๆ ก่อน
-  await routeLoader(path);
-  // จากนั้นค่อย render
-  renderPage(path);
 }
 
 export function navigate(path) {
@@ -70,10 +46,8 @@ export function navigate(path) {
 
 export const router = {
   init() {
-    // ใช้ setTimeout เพื่อให้แน่ใจว่า DOM ของ AppLayout พร้อมแล้ว
-    setTimeout(() => {
-      window.addEventListener('hashchange', handleRouteChange);
-      handleRouteChange(); // Render หน้าเริ่มต้น
-    }, 0);
+    const handleRouteChange = () => renderPage(window.location.hash.slice(1) || '/pos');
+    window.addEventListener('hashchange', handleRouteChange);
+    handleRouteChange(); // Render หน้าเริ่มต้น
   },
 };
