@@ -1,29 +1,16 @@
 // scripts/api/historyApi.js
 import { supabase } from '../lib/supabaseClient.js';
+import { user } from '../stores/userStore.js';
 
 export async function fetchSalesHistory(startDate, endDate) {
-  let shopId;
+  const currentUser = user;
 
-  try {
-    const rawUser = localStorage.getItem('user');
-
-    if (!rawUser) {
-      console.warn('[fetchSalesHistory] No user in localStorage');
-      return [];
-    }
-
-    const user = typeof rawUser === 'string' ? JSON.parse(rawUser) : rawUser;
-
-    if (!user || typeof user !== 'object' || !user.shopId) {
-      console.warn('[fetchSalesHistory] Invalid user format or missing shopId:', user);
-      return [];
-    }
-
-    shopId = user.shopId;
-  } catch (error) {
-    console.error('[fetchSalesHistory] Failed to parse user from localStorage:', error);
+  if (!currentUser || !currentUser.shopId) {
+    console.warn('[fetchSalesHistory] user.shopId is missing. Abort fetching history.');
     return [];
   }
+
+  const shopId = currentUser.shopId;
 
   let query = supabase
     .from('sales_with_localtime')
