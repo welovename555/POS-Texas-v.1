@@ -1,7 +1,11 @@
 import { userStore } from '../state/userStore.js';
+import { productStore } from '../state/productStore.js';
+import { getProductsWithStock } from '../api/productApi.js';
 import { PosPage } from '../pages/PosPage.js';
 import { AdminPage } from '../pages/AdminPage.js';
 import { HistoryPage } from '../pages/HistoryPage.js';
+
+const contentContainer = document.getElementById('main-content');
 
 const routes = {
   '/pos': PosPage,
@@ -13,24 +17,32 @@ const routes = {
 
 const adminOnlyRoutes = ['/admin'];
 
-function renderPage(path) {
-  const contentContainer = document.getElementById('main-content');
+async function routeLoader(path) {
+  const currentUser = userStore.getCurrentUser();
+  if (!currentUser) return;
+
+  if (path === '/pos' && productStore.getProducts().length === 0) {
+    const products = await getProductsWithStock(currentUser.shopId);
+    productStore.setProducts(products);
+  }
+}
+
+async function renderPage(path) {
   if (!contentContainer) return;
 
   const user = userStore.getCurrentUser();
   const isAdminRoute = adminOnlyRoutes.includes(path);
 
-  // --- Route Protection ---
   if (isAdminRoute && user.role !== 'admin') {
-    return navigate('/pos'); // ถ้าไม่ใช่ admin ให้เด้งกลับ
+    return navigate('/pos');
   }
 
-  // --- Update Active Menu ---
   document.querySelectorAll('.sidebar__link').forEach(link => {
     link.classList.toggle('active', link.dataset.path === path);
   });
   
-  // --- Render Page ---
+  await routeLoader(path);
+
   const pageComponent = routes[path] || routes['/pos'];
   const { view, postRender } = pageComponent();
   contentContainer.innerHTML = view;
@@ -48,6 +60,6 @@ export const router = {
   init() {
     const handleRouteChange = () => renderPage(window.location.hash.slice(1) || '/pos');
     window.addEventListener('hashchange', handleRouteChange);
-    handleRouteChange(); // Render หน้าเริ่มต้น
+    handleRouteChange();
   },
 };
