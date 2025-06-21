@@ -2,19 +2,16 @@
 
 import { userStore } from '../state/userStore.js';
 import { fetchSalesHistory } from '../api/historyApi.js';
-import { format } from 'date-fns';
-import { th } from 'date-fns/locale';
 
 export function HistoryPage() {
-  const today = new Date();
-  const todayStr = format(today, 'yyyy-MM-dd');
+  const today = dayjs().format('YYYY-MM-DD');
 
   const view = `
     <div class="page-content-wrapper history-page">
       <h1 class="page-title">ประวัติการขาย</h1>
       <div class="history-date-selector">
         <label for="history-date">เลือกวันที่:</label>
-        <input type="date" id="history-date" value="${todayStr}" />
+        <input type="date" id="history-date" value="${today}" />
         <button id="fetch-history-btn">ค้นหา</button>
       </div>
       <div class="history-table-container" id="history-table-container">
@@ -43,7 +40,7 @@ export function HistoryPage() {
       sales.forEach((sale) => {
         if (!grouped[sale.transactionId]) {
           grouped[sale.transactionId] = {
-            time: format(new Date(sale.createdAt), 'HH:mm'),
+            time: dayjs(sale.createdAt).locale('th').format('HH:mm'),
             employee: sale.employeeId,
             paymentType: sale.paymentType,
             items: [],
@@ -55,9 +52,10 @@ export function HistoryPage() {
         });
       });
 
-      // Convert and sort
-      const sortedSales = Object.entries(grouped)
-        .sort((a, b) => new Date(b[1].time) - new Date(a[1].time));
+      // Convert and sort by time descending
+      const sortedSales = Object.entries(grouped).sort(
+        (a, b) => dayjs(b[1].time, 'HH:mm') - dayjs(a[1].time, 'HH:mm')
+      );
 
       const html = `
         <table class="history-table">
