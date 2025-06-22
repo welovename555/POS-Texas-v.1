@@ -1,6 +1,6 @@
 // scripts/pages/PosPage.js
 
-import { getUser, setUser, clearUser } from '../state/userStore.js';
+import { getUser, clearUser } from '../state/userStore.js';
 import { getProducts } from '../api/productApi.js';
 import { getActiveShiftId } from '../state/shiftStore.js';
 import { handleSale } from '../api/salesApi.js';
